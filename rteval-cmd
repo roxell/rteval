@@ -205,7 +205,8 @@ if __name__ == '__main__':
             # Missing file argument
             raise RuntimeError('The -f option requires a file name to the configuration file')
         except ValueError:
-            # No configuration file given
+            # No configuration file given, load defaults
+            config.Load()
             pass
 
         if not config.HasSection('loads'):
