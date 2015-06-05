@@ -1,6 +1,6 @@
 Name:		rteval-loads
 Version:	1.3
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	Source files for rteval loads
 Group:		Development/Tools
 License:	GPLv2
@@ -37,6 +37,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc
 
 %changelog
+* Mon Nov 10 2014 Luis Claudio R. Goncalves <lgoncalv@redhat.com> - 1.3-2
+-  rebuild for RHEL-7.1 (1151569)
+
 * Fri May 20 2011 Clark Williams <williams@redhat.com> - 1.3-1
 - updated kernel tarball to 2.6.39
 
