@@ -1,4 +1,4 @@
-#  
+#
 #   hackbench.py - class to manage an instance of hackbench load
 #
 #   Copyright 2009 - 2013   Clark Williams <williams@redhat.com>
@@ -56,7 +56,7 @@ class Hackbench(CommandLineLoad):
         self.jobs = self.num_cpus * mult
 
         self.args = ['hackbench',  '-P',
-                     '-g', str(self.jobs), 
+                     '-g', str(self.jobs),
                      '-l', str(self._cfg.setdefault('loops', '100')),
                      '-s', str(self._cfg.setdefault('datasize', '100'))
                      ]
@@ -135,7 +135,7 @@ class Hackbench(CommandLineLoad):
 def ModuleParameters():
     return {"jobspercore": {"descr": "Number of working threads per CPU core",
                             "default": 5,
-                            "metavar": "NUM"}
+                            "metavar": "NUM"},
             }
 
 

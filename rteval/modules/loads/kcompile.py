@@ -95,7 +95,7 @@ class Kcompile(CommandLineLoad):
 
         # clean up from potential previous run
         try:
-            ret = subprocess.call(["make", "-C", self.mydir, "mrproper", "allmodconfig"], 
+            ret = subprocess.call(["make", "-C", self.mydir, "mrproper", "allmodconfig"],
                                   stdin=null, stdout=out, stderr=err)
             if ret:
                 raise rtevalRuntimeError(self, "kcompile setup failed: %d" % ret)
@@ -184,7 +184,7 @@ def ModuleParameters():
                          "metavar": "TARBALL"},
             "jobspercore": {"descr": "Number of working threads per core",
                             "default": 2,
-                            "metavar": "NUM"}
+                            "metavar": "NUM"},
             }
 
 
