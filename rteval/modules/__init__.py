@@ -270,7 +270,7 @@ the information provided by the module"""
 
         grparser = optparse.OptionGroup(parser, "Group Options for %s modules" % self.__modtype)
         grparser.add_option('--%s-cpulist' % self.__modtype,
-                            dest='%s___cpulist' % self.__modtype, action='store',
+                            dest='%s___cpulist' % self.__modtype, action='store', default="",
                             help='CPU list where %s modules will run' % self.__modtype,
                             metavar='LIST')
         parser.add_option_group(grparser)

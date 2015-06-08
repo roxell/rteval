@@ -50,7 +50,7 @@ class LoadThread(rtevalModulePrototype):
         self.source = config.setdefault('source', None)
         self.reportdir = config.setdefault('reportdir', os.getcwd())
         self.memsize = config.setdefault('memsize', (0, 'GB'))
-        self.cpulist = config.setdefault('cpulist', None)
+        self.cpulist = config.setdefault('cpulist', "")
         self._logging = config.setdefault('logging', True)
         self._cfg = config
         self.mydir = None
