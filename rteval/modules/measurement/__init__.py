@@ -156,6 +156,8 @@ measurement profiles, based on their characteristics"""
             raise TypeError("modparams attribute is not of a dictionary type")
 
         modcfg = self.__cfg.GetSection("measurement")
+        cpulist = modcfg.cpulist
+
         for (modname, modtype) in modcfg:
             if modtype.lower() == 'module':  # Only 'module' will be supported (ds)
                 # Extract the measurement modules info
@@ -176,6 +178,7 @@ measurement profiles, based on their characteristics"""
 
                 # Setup this imported module inside the appropriate measurement profile
                 self.__cfg.AppendConfig(modname, modparams)
+                self.__cfg.AppendConfig(modname, {'cpulist':cpulist})
                 mp.Setup(modname)
 
         del self.__container

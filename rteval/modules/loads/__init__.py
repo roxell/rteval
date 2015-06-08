@@ -50,6 +50,7 @@ class LoadThread(rtevalModulePrototype):
         self.source = config.setdefault('source', None)
         self.reportdir = config.setdefault('reportdir', os.getcwd())
         self.memsize = config.setdefault('memsize', (0, 'GB'))
+        self.cpulist = config.setdefault('cpulist', None)
         self._logging = config.setdefault('logging', True)
         self._cfg = config
         self.mydir = None
@@ -112,11 +113,13 @@ class LoadModules(RtEvalModules):
             raise TypeError("modparams attribute is not of a dictionary type")
 
         modcfg = self._cfg.GetSection(self._module_config)
+        cpulist = modcfg.cpulist
         for m in modcfg:
             # hope to eventually have different kinds but module is only on
             # for now (jcw)
             if m[1].lower() == 'module':
                 self._cfg.AppendConfig(m[0], modparams)
+                self._cfg.AppendConfig(m[0], {'cpulist': cpulist})
                 modobj = self._InstantiateModule(m[0], self._cfg.GetSection(m[0]))
                 self._RegisterModuleObject(m[0], modobj)
 
@@ -141,4 +144,3 @@ class LoadModules(RtEvalModules):
         if self.__loadavg_samples == 0:
             self.SaveLoadAvg()
         return float(self.__loadavg_accum / self.__loadavg_samples)
-

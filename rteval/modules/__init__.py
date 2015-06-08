@@ -229,6 +229,7 @@ objects during module import."""
             raise TypeError("logger attribute is not a Log() object")
 
         self.__modules_root = modules_root
+        self.__modtype = modules_root.split('.')[-1]
         self.__logger = logger
         self.__modobjects = {}  # Keeps track of instantiated objects
         self.__modsloaded = {}     # Keeps track of imported modules
@@ -266,6 +267,13 @@ the information provided by the module"""
 
     def SetupModuleOptions(self, parser, config):
         """Sets up a separate optptarse OptionGroup per module with its supported parameters"""
+
+        grparser = optparse.OptionGroup(parser, "Group Options for %s modules" % self.__modtype)
+        grparser.add_option('--%s-cpulist' % self.__modtype,
+                            dest='%s___cpulist' % self.__modtype, action='store',
+                            help='CPU list where %s modules will run' % self.__modtype,
+                            metavar='LIST')
+        parser.add_option_group(grparser)
 
         for (modname, mod) in self.__modsloaded.items():
             opts = mod.ModuleParameters()
