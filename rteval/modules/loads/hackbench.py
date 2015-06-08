@@ -29,7 +29,7 @@ import sys, os, time, glob, subprocess, errno
 from signal import SIGKILL
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
-
+from rteval.misc import expand_cpulist
 
 class Hackbench(CommandLineLoad):
     def __init__(self, config, logger):
@@ -53,13 +53,21 @@ class Hackbench(CommandLineLoad):
             mult = 0
             self._donotrun = True
 
-        self.jobs = self.num_cpus * mult
+        if self._cfg.has_key('cpulist'):
+            cpulist = self._cfg.cpulist
+            self.jobs = len(expand_cpulist(cpulist)) * mult
+        else:
+            cpulist = None
+            self.jobs = self.num_cpus * mult
 
         self.args = ['hackbench',  '-P',
                      '-g', str(self.jobs),
                      '-l', str(self._cfg.setdefault('loops', '100')),
                      '-s', str(self._cfg.setdefault('datasize', '100'))
                      ]
+        if cpulist:
+            self.args = ['taskset', '-c', cpulist ] + self.args
+
         self.__err_sleep = 5.0
 
 

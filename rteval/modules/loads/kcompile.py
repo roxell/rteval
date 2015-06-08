@@ -28,6 +28,7 @@ from signal import SIGTERM
 from rteval.modules import rtevalRuntimeError
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
+from rteval.misc import expand_cpulist
 
 kernel_prefix="linux-2.6"
 
@@ -136,10 +137,21 @@ class Kcompile(CommandLineLoad):
         else:
             self.__outfd = self.__errfd = self.__nullfd
 
+        if self._cfg.has_key('cpulist'):
+            cpulist = self._cfg.cpulist
+            self.num_cpus = len(expand_cpulist(cpulist))
+        else:
+            cpulist = None
+
         self.jobs = self.__calc_numjobs()
         self._log(Log.DEBUG, "starting loop (jobs: %d)" % self.jobs)
+
         self.args = ["make", "-C", self.mydir,
                      "-j%d" % self.jobs ]
+
+        if cpulist:
+            self.args = ["taskset", '-c', cpulist] + self.args
+
         self.__kcompileproc = None
 
 
