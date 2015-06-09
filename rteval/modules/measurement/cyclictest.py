@@ -28,7 +28,7 @@
 import os, sys, subprocess, signal, libxml2, shutil, tempfile, time
 from rteval.Log import Log
 from rteval.modules import rtevalModulePrototype
-
+from rteval.misc import expand_cpulist, online_cpus, cpuinfo
 
 class RunData(object):
     '''class to keep instance data from a cyclictest run'''
@@ -49,6 +49,17 @@ class RunData(object):
         self.__range = 0.0
         self.__mad = 0.0
         self._log = logfnc
+
+    def __str__(self):
+        retval =  "id:         %s\n" % self.__id
+        retval += "type:       %s\n" % self.__type
+        retval += "numsamples: %d\n" % self.__numsamples
+        retval += "min:        %d\n" % self.__min
+        retval += "max:        %d\n" % self.__max
+        retval += "stddev:     %f\n" % self.__stddev
+        retval += "mad:        %f\n" % self.__mad
+        retval += "mean:       %f\n" % self.__mean
+        return retval
 
     def sample(self, value):
         self.__samples[value] += self.__samples.setdefault(value, 0) + 1
@@ -175,28 +186,40 @@ class Cyclictest(rtevalModulePrototype):
         self.__cfg = config
 
         # Create a RunData object per CPU core
-        f = open('/proc/cpuinfo')
         self.__numanodes = int(self.__cfg.setdefault('numanodes', 0))
         self.__priority = int(self.__cfg.setdefault('priority', 95))
         self.__buckets = int(self.__cfg.setdefault('buckets', 2000))
         self.__numcores = 0
+        self.__cpus = []
         self.__cyclicdata = {}
-        for line in f:
-            if line.startswith('processor'):
-                core = line.split()[-1]
-                self.__cyclicdata[core] = RunData(core, 'core',self.__priority,
-                                                  logfnc=self._log)
-                self.__numcores += 1
-            if line.startswith('model name'):
-                desc = line.split(': ')[-1][:-1]
-                self.__cyclicdata[core].description = ' '.join(desc.split())
-        f.close()
+        self.__sparse = False
+
+        if self.__cfg.cpulist:
+            self.__cpulist = self.__cfg.cpulist
+            self.__cpus = expand_cpulist(self.__cpulist)
+            self.__sparse = True
+        else:
+            self.__cpus = online_cpus()
+
+        self.__numcores = len(self.__cpus)
+
+        info = cpuinfo()
+
+        # create a RunData object for each core we'll measure
+        for core in self.__cpus:
+            self.__cyclicdata[core] = RunData(core, 'core',self.__priority,
+                                              logfnc=self._log)
+            self.__cyclicdata[core].description = info[core]['model name']
 
         # Create a RunData object for the overall system
         self.__cyclicdata['system'] = RunData('system', 'system', self.__priority,
                                               logfnc=self._log)
-        self.__cyclicdata['system'].description = ("(%d cores) " % self.__numcores) + self.__cyclicdata['0'].description
-        self._log(Log.DEBUG, "system has %d cpu cores" % self.__numcores)
+        self.__cyclicdata['system'].description = ("(%d cores) " % self.__numcores) + info['0']['model name']
+
+        if self.__sparse:
+            self._log(Log.DEBUG, "system using %d cpu cores" % self.__numcores)
+        else:
+            self._log(Log.DEBUG, "system has %d cpu cores" % self.__numcores)
         self.__started = False
         self.__cyclicoutput = None
         self.__breaktraceval = None
@@ -239,8 +262,12 @@ class Cyclictest(rtevalModulePrototype):
                       '-qmu',
                       '-h %d' % self.__buckets,
                       "-p%d" % int(self.__priority),
-                      self.__getmode(),
                       ]
+        if self.__sparse:
+            self.__cmd.append('-t%d' % self.__numcores)
+            self.__cmd.append('-a%s' % self.__cpulist)
+        else:
+            self.__cmd.append(self.__getmode())
 
         if self.__cfg.has_key('threads') and self.__cfg.threads:
             self.__cmd.append("-t%d" % int(self.__cfg.threads))
@@ -309,12 +336,15 @@ class Cyclictest(rtevalModulePrototype):
                 continue
 
             index = int(vals[0])
-            for i in range(0, len(self.__cyclicdata)-1):
-                if str(i) not in self.__cyclicdata: continue
-                self.__cyclicdata[str(i)].bucket(index, int(vals[i+1]))
+            for i,core in enumerate(self.__cpus):
+                self.__cyclicdata[core].bucket(index, int(vals[i+1]))
                 self.__cyclicdata['system'].bucket(index, int(vals[i+1]))
+
+        # generate statistics for each RunData object
         for n in self.__cyclicdata.keys():
+            #print "reducing self.__cyclicdata[%s]" % n
             self.__cyclicdata[n].reduce()
+            #print self.__cyclicdata[n]
 
         # If the breaktrace feature of cyclictest was enabled and triggered,
         # put the trace into the log directory
@@ -361,10 +391,9 @@ class Cyclictest(rtevalModulePrototype):
             rep_n.addChild(abrt_n)
 
         rep_n.addChild(self.__cyclicdata["system"].MakeReport())
-        for thr in range(0, self.__numcores):
+        for thr in self.__cpus:
             if str(thr) not in self.__cyclicdata:
                 continue
-
             rep_n.addChild(self.__cyclicdata[str(thr)].MakeReport())
 
         return rep_n
@@ -400,7 +429,7 @@ def create(params, logger):
 
 if __name__ == '__main__':
     from rteval.rtevalConfig import rtevalConfig
-    
+
     l = Log()
     l.SetLogVerbosity(Log.INFO|Log.DEBUG|Log.ERR|Log.WARN)
 
@@ -422,7 +451,6 @@ if __name__ == '__main__':
     c._WorkloadSetup()
     c._WorkloadPrepare()
     c._WorkloadTask()
-    print "Running for %i seconds" % runtime
     time.sleep(runtime)
     c._WorkloadCleanup()
     rep_n = c.MakeReport()
