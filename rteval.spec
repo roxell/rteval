@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.1
-Release:	6%{?dist}
+Version:	2.2
+Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -21,6 +21,7 @@ Requires:	rteval-loads >= 1.2
 Requires:	rteval-common => %{version}-%{release}
 Requires:	trace-cmd
 Requires:	sysstat
+Requires:	bzip2
 BuildArch:	noarch
 Obsoletes:	rteval <= 1.7
 
@@ -91,6 +92,15 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Wed Jun 10 2015 Clark Williams <williams@redhat.com> - 2.2-1
+- add --loads-cpulist and --measurement-cpulist to allow cpu placement [1230401]
+
+* Thu Apr 23 2015 Luis Claudio R. Goncalves <lgoncalv@redhat.com> - 2.1-8
+- load default configs when no config file is specified (Jiri kastner) [1212452]
+
+* Wed Jan 14 2015 Clark Williams <williams@redhat.com> - 2.1-7
+- added requires of bzip2 to specfile [1151567]
+
 * Thu Jan  8 2015 Clark Williams <williams@redhat.com> - 2.1-6
 - cleaned up product documentation [1173315]
 
