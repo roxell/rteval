@@ -53,11 +53,11 @@ class Hackbench(CommandLineLoad):
             mult = 0
             self._donotrun = True
 
-        if self._cfg.has_key('cpulist'):
+        if self._cfg.has_key('cpulist') and self._cfg.cpulist:
             cpulist = self._cfg.cpulist
             self.jobs = len(expand_cpulist(cpulist)) * mult
         else:
-            cpulist = None
+            cpulist = ""
             self.jobs = self.num_cpus * mult
 
         self.args = ['hackbench',  '-P',

@@ -137,11 +137,11 @@ class Kcompile(CommandLineLoad):
         else:
             self.__outfd = self.__errfd = self.__nullfd
 
-        if self._cfg.has_key('cpulist'):
+        if self._cfg.has_key('cpulist') and self._cfg.cpulist:
             cpulist = self._cfg.cpulist
             self.num_cpus = len(expand_cpulist(cpulist))
         else:
-            cpulist = None
+            cpulist = ""
 
         self.jobs = self.__calc_numjobs()
         self._log(Log.DEBUG, "starting loop (jobs: %d)" % self.jobs)
