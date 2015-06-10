@@ -1,4 +1,5 @@
 #
+#   Copyright 2015  Clark Williams <williams@redhat.com>
 #   Copyright 2012 - 2013   David Sommerseth <davids@redhat.com>
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -22,5 +23,4 @@
 #   are deemed to be part of the source code.
 #
 
-RTEVAL_VERSION = '2.1'
-
+RTEVAL_VERSION = '2.2'
