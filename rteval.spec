@@ -71,6 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/rteval/rtevalXMLRPC.py*
 %{python_sitelib}/rteval/version.py*
 %{python_sitelib}/rteval/Log.py*
+%{python_sitelib}/rteval/misc.py*
 
 
 %files
