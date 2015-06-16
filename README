@@ -9,7 +9,7 @@ duration is met, the loads are stopped and cyclictest outputs measured
 timer latency values in histogram format, which is analyzed by
 rteval. Rteval then writes an XML file to disk with information about
 the system (gotten through DMI tables), the raw histogram data
-collected during the run and the statistical analysis of the run. 
+collected during the run and the statistical analysis of the run.
 
 The rteval source may be pulled from it's git tree on kernel.org:
     git://git.kernel.org/pub/scm/linux/kernel/git/clrkwllms/rteval.git
@@ -19,10 +19,10 @@ Rteval requires the following packages to run:
 Python >= 2.4 (and < 3.0)
     http://www.python.org/download/
 
-python-schedtils
+python-schedutils
     git://git.kernel.org/pub/scm/linux/kernel/git/acme/python-schedutils.git
 
-python-ethtools
+python-ethtool
     git://git.kernel.org/pub/scm/linux/kernel/git/acme/python-ethtool.git
 
 python-lxml
@@ -40,7 +40,4 @@ rt-tests
 
 Clark Williams <williams@redhat.com> wrote rteval
 David Sommerseth <davids@redhat.com> wrote the XML-RPC and database
-     logic for handling rteval results. 
-
-
-
+     logic for handling rteval results.
