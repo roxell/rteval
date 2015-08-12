@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.2
+Version:	2.3
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -94,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Wed Aug 12 2015 Clark Williams <williams@redhat.com> - 2.3-1
+- comment out HWLatDetect module from default config [1245699]
+
 * Wed Jun 10 2015 Clark Williams <williams@redhat.com> - 2.2-1
 - add --loads-cpulist and --measurement-cpulist to allow cpu placement [1230401]
 
