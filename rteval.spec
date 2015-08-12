@@ -22,6 +22,7 @@ Requires:	rteval-common => %{version}-%{release}
 Requires:	trace-cmd
 Requires:	sysstat
 Requires:	bzip2
+Requires:       kernel-headers
 BuildArch:	noarch
 Obsoletes:	rteval <= 1.7
 
