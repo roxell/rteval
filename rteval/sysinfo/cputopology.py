@@ -115,7 +115,7 @@ class CPUtopology:
 def unit_test(rootdir):
     try:
         cputop = CPUtopology()
-        n = cputop.parse()
+        n = cputop._parse()
 
         print " ---- XML Result ---- "
         x = libxml2.newDoc('1.0')
@@ -123,9 +123,9 @@ def unit_test(rootdir):
         x.saveFormatFileEnc('-','UTF-8',1)
 
         print " ---- getCPUcores() / getCPUscokets() ---- "
-        print "CPU cores: %i (online: %i) - CPU sockets: %i" % (cputop.getCPUcores(False),
-                                                                cputop.getCPUcores(True),
-                                                                cputop.getCPUsockets())
+        print "CPU cores: %i (online: %i) - CPU sockets: %i" % (cputop.cpu_getCores(False),
+                                                                cputop.cpu_getCores(True),
+                                                                cputop.cpu_getSockets())
         return 0
     except Exception, e:
         # import traceback
