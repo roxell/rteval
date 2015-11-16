@@ -25,7 +25,7 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os, time, glob, subprocess, errno
+import sys, os, time, glob, subprocess, errno, os.path
 from signal import SIGKILL
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
@@ -53,21 +53,37 @@ class Hackbench(CommandLineLoad):
             mult = 0
             self._donotrun = True
 
-        if self._cfg.has_key('cpulist') and self._cfg.cpulist:
-            cpulist = self._cfg.cpulist
-            self.jobs = len(expand_cpulist(cpulist)) * mult
-        else:
-            cpulist = ""
-            self.jobs = self.num_cpus * mult
+        # figure out how many nodes we have
+        self.nodes = [ n.split('/')[-1][4:] for n in glob.glob('/sys/devices/system/node/node*') ]
+
+
+        # get the cpus for each node
+        self.cpus = {}
+        biggest = 0
+        for n in self.nodes:
+            self.cpus[n] = [ int(c.split('/')[-1][3:]) for c in glob.glob('/sys/devices/system/node/node%s/cpu[0-9]*' % n) ]
+            self.cpus[n].sort()
+            if len(self.cpus[n]) > biggest:
+                biggest = len(self.cpus[n])
+
+        # setup jobs based on the number of cores available per node
+        self.jobs = biggest
+
+        # figure out if we can use numactl or have to use taskset
+        self.__usenumactl = False
+        self.__multinodes = False
+        if len(self.nodes) > 1:
+            self.__multinodes = True
+            self._log(Log.INFO, "running with multiple nodes (%d)" % len(self.nodes))
+            if os.path.exists('/usr/bin/numactl'):
+                self.__usenumactl = True
+                self._log(Log.INFO, "using numactl for thread affinity")
 
         self.args = ['hackbench',  '-P',
                      '-g', str(self.jobs),
                      '-l', str(self._cfg.setdefault('loops', '100')),
                      '-s', str(self._cfg.setdefault('datasize', '100'))
                      ]
-        if cpulist:
-            self.args = ['taskset', '-c', cpulist ] + self.args
-
         self.__err_sleep = 5.0
 
 
@@ -84,32 +100,46 @@ class Hackbench(CommandLineLoad):
         else:
             self.__out = self.__err = self.__nullfp
 
+        self.tasks = {}
+
         self._log(Log.DEBUG, "starting loop (jobs: %d)" % self.jobs)
 
+
+    def __starton(self, node):
+        if self.__multinodes:
+            if self.__usenumactl:
+                args = [ 'numactl', '--cpubindnode', node ] + self.args
+            else:
+                cpulist = ",".join([ str(n) for n in self.cpus[node] ])
+                args = ['taskset', '-c', cpulist ] + self.args
+        else:
+            args = self.args
+
+        self._log(Log.DEBUG, "starting on node %s: args = %s" % (node, args))
+        return subprocess.Popen(args,
+                                stdin=self.__nullfp,
+                                stdout=self.__out,
+                                stderr=self.__err)
 
     def _WorkloadTask(self):
         if self.shouldStop():
             return
 
-        self._log(Log.DEBUG, "running: %s" % " ".join(self.args))
-        try:
-            self.__hbproc = subprocess.Popen(self.args,
-                                             stdin=self.__nullfp,
-                                             stdout=self.__out,
-                                             stderr=self.__err)
-            self.__hbproc.wait()
-
-        except OSError, e:
-            if e.errno != errno.ENOMEM:
-                raise e
-            # Catch out-of-memory errors and wait a bit to (hopefully)
-            # ease memory pressure
-            self._log(Log.DEBUG, "ERROR: %s, sleeping for %f seconds" % (e.strerror, self.__err_sleep))
-            time.sleep(self.__err_sleep)
-            if self.__err_sleep < 60.0:
-                self.__err_sleep *= 2.0
-            if self.__err_sleep > 60.0:
-                self.__err_sleep = 60.0
+        for n in self.nodes:
+            if not self.tasks.has_key(n) or self.tasks[n].poll() is not None:
+                try:
+                    self.tasks[n] = self.__starton(n)
+                except OSError, e:
+                    if e.errno != errno.ENOMEM:
+                        raise e
+                    # Catch out-of-memory errors and wait a bit to (hopefully)
+                    # ease memory pressure
+                    self._log(Log.DEBUG, "ERROR: %s, sleeping for %f seconds" % (e.strerror, self.__err_sleep))
+                    time.sleep(self.__err_sleep)
+                    if self.__err_sleep < 60.0:
+                        self.__err_sleep *= 2.0
+                    if self.__err_sleep > 60.0:
+                        self.__err_sleep = 60.0
 
 
     def WorkloadAlive(self):
@@ -121,12 +151,14 @@ class Hackbench(CommandLineLoad):
         if self._donotrun:
             return
 
-        while self.__hbproc.poll() == None:
-            self._log(Log.DEBUG, "Forcing it to stop")
-            self.__hbproc.send_signal(SIGKILL)
-            if self.__hbproc.poll() == None:
-                time.sleep(2)
-        self.__hbproc.wait()
+        for node in self.nodes:
+            if self.tasks.has_key(node) and self.tasks[node].poll() is None:
+                self._log(Log.INFO, "cleaning up hackbench on node %s" % node)
+                self.tasks[node].send_signal(SIGKILL)
+                if self.tasks[node].poll() == None:
+                    time.sleep(2)
+            self.tasks[node].wait()
+            del self.tasks[node]
 
         os.close(self.__nullfp)
         if self._logging:
@@ -135,7 +167,6 @@ class Hackbench(CommandLineLoad):
             os.close(self.__err)
             del self.__err
 
-        del self.__hbproc
         del self.__nullfp
 
 
