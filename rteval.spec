@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.3
+Version:	2.4
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -94,6 +94,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Tue Nov 17 2015 Clark Williams <williams@refhat.com> - 2.4.1
+- rework hackbench load to not generate cross-node traffic [1282826]
+
 * Wed Aug 12 2015 Clark Williams <williams@redhat.com> - 2.3-1
 - comment out HWLatDetect module from default config [1245699]
 
