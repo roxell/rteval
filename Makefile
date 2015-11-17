@@ -92,12 +92,23 @@ rtevalrpm: rteval-$(VERSION).tar.bz2
 	cp rteval.spec rpm/SPECS
 	rpmbuild -ba --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval.spec
 
+rtevalsrpm: rteval-$(VERSION).tar.bz2
+	cp $^ rpm/SOURCES
+	cp rteval.spec rpm/SPECS
+	rpmbuild -bs --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval.spec
+
+
 xmlrpcrpm: rteval-xmlrpc-$(XMLRPCVER).tar.gz
 	cp rteval-xmlrpc-$(XMLRPCVER).tar.gz rpm/SOURCES/
 	cp server/rteval-parser.spec rpm/SPECS/
 	rpmbuild -ba --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval-parser.spec
 
-loadrpm: 
+xmlsrpm: rteval-xmlrpc-$(XMLRPCVER).tar.gz
+	cp rteval-xmlrpc-$(XMLRPCVER).tar.gz rpm/SOURCES/
+	cp server/rteval-parser.spec rpm/SPECS/
+	rpmbuild -bs --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval-parser.spec
+
+loadrpm:
 	rm -rf rpm-loads
 	mkdir -p rpm-loads/{BUILD,RPMS,SRPMS,SOURCES,SPECS}
 	cp rteval-loads.spec rpm-loads/SPECS
