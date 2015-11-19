@@ -67,7 +67,7 @@ class Hackbench(CommandLineLoad):
                 biggest = len(self.cpus[n])
 
         # setup jobs based on the number of cores available per node
-        self.jobs = biggest
+        self.jobs = biggest * 3
 
         # figure out if we can use numactl or have to use taskset
         self.__usenumactl = False
@@ -81,11 +81,10 @@ class Hackbench(CommandLineLoad):
 
         self.args = ['hackbench',  '-P',
                      '-g', str(self.jobs),
-                     '-l', str(self._cfg.setdefault('loops', '100')),
-                     '-s', str(self._cfg.setdefault('datasize', '100'))
+                     '-l', str(self._cfg.setdefault('loops', '1000')),
+                     '-s', str(self._cfg.setdefault('datasize', '1000'))
                      ]
         self.__err_sleep = 5.0
-
 
     def _WorkloadBuild(self):
         # Nothing to build, so we're basically ready
@@ -104,6 +103,7 @@ class Hackbench(CommandLineLoad):
 
         self._log(Log.DEBUG, "starting loop (jobs: %d)" % self.jobs)
 
+        self.started = False
 
     def __starton(self, node):
         if self.__multinodes:
@@ -125,21 +125,29 @@ class Hackbench(CommandLineLoad):
         if self.shouldStop():
             return
 
+        # just do this once
+        if not self.started:
+            for n in self.nodes:
+                self.tasks[n] = self.__starton(n)
+            self.started = True
+            return
+
         for n in self.nodes:
-            if not self.tasks.has_key(n) or self.tasks[n].poll() is not None:
-                try:
+            try:
+                if self.tasks[n].poll() is not None:
+                    self.tasks[n].wait()
                     self.tasks[n] = self.__starton(n)
-                except OSError, e:
-                    if e.errno != errno.ENOMEM:
-                        raise e
-                    # Catch out-of-memory errors and wait a bit to (hopefully)
-                    # ease memory pressure
-                    self._log(Log.DEBUG, "ERROR: %s, sleeping for %f seconds" % (e.strerror, self.__err_sleep))
-                    time.sleep(self.__err_sleep)
-                    if self.__err_sleep < 60.0:
-                        self.__err_sleep *= 2.0
-                    if self.__err_sleep > 60.0:
-                        self.__err_sleep = 60.0
+            except OSError, e:
+                if e.errno != errno.ENOMEM:
+                    raise e
+                # Catch out-of-memory errors and wait a bit to (hopefully)
+                # ease memory pressure
+                self._log(Log.DEBUG, "ERROR: %s, sleeping for %f seconds" % (e.strerror, self.__err_sleep))
+                time.sleep(self.__err_sleep)
+                if self.__err_sleep < 60.0:
+                    self.__err_sleep *= 2.0
+                if self.__err_sleep > 60.0:
+                    self.__err_sleep = 60.0
 
 
     def WorkloadAlive(self):
