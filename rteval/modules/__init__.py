@@ -56,6 +56,7 @@ class rtevalModulePrototype(threading.Thread):
                          "finished": threading.Event()}
         self._donotrun = False
         self.__timestamps = {}
+        self.__sleeptime = 5.0
 
 
     def _log(self, logtype, msg):
@@ -191,7 +192,8 @@ class rtevalModulePrototype(threading.Thread):
                 if not self.WorkloadAlive():
                     self._log(Log.DEBUG, "%s workload stopped running." % self._module_type)
                     break
-                time.sleep(60.0)
+                time.sleep(self.__sleeptime)
+
             self.__timestamps["runloop_stop"] = datetime.now()
             self._log(Log.DEBUG, "stopping %s workload" % self._module_type)
         else:
