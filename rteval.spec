@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	1.38
+Version:	1.39
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -71,6 +71,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Fri Nov 20 2015 Clark Williams <williams@redhat.com> - 1.39-1
+- hackbench: modify to avoid cross-node NUMA copies
+
 * Tue Sep 17 2013 Clark Williams <williams@redhat.com> - 1.38-1
 - cleaned up incorrect usage of percent signs in changelog
 - added data validation checks to histogram parsing code
