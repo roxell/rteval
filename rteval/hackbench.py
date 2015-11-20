@@ -1,4 +1,4 @@
-#  
+#
 #   hackbench.py - class to manage an instance of hackbench load
 #
 #   Copyright 2009,2010   Clark Williams <williams@redhat.com>
@@ -42,85 +42,113 @@ class Hackbench(load.Load):
 
     def __del__(self):
         null = open("/dev/null", "w")
-        subprocess.call(['killall', '-9', 'hackbench'], 
+        subprocess.call(['killall', '-9', 'hackbench'],
                         stdout=null, stderr=null)
         os.close(null)
 
     def setup(self):
-        'calculate arguments based on input parameters'
-        (mem, units) = self.memsize
-        if units == 'KB':
-            mem = mem / (1024.0 * 1024.0)
-        elif units == 'MB':
-            mem = mem / 1024.0
-        elif units == 'TB':
-            mem = mem * 1024
-        ratio = float(mem) / float(self.num_cpus)
-        if ratio >= 0.75:
-            mult = float(self.params.setdefault('jobspercore', 2))
-        else:
-            print "hackbench: low memory system (%f GB/core)! Not running\n" % ratio
-            mult = 0
-        self.jobs = self.num_cpus * mult
+        # figure out how many nodes we have
+        self.nodes = [ n.split('/')[-1][4:] for n in glob.glob('/sys/devices/system/node/node*') ]
+
+        # get the cpus for each node
+        self.cpus = {}
+        biggest = 0
+        for n in self.nodes:
+            self.cpus[n] = [ int(c.split('/')[-1][3:]) for c in glob.glob('/sys/devices/system/node/node%s/cpu[0-9]*' % n) ]
+            self.cpus[n].sort()
+            if len(self.cpus[n]) > biggest:
+                biggest = len(self.cpus[n])
+
+        # setup jobs based on the number of cores available per node
+        self.jobs = biggest * 3
+
+        # figure out if we can use numactl or have to use taskset
+        self.__usenumactl = False
+        self.__multinodes = False
+        if len(self.nodes) > 1:
+            self.__multinodes = True
+            print "hackbench: running with multiple nodes (%d)" % len(self.nodes)
+            if os.path.exists('/usr/bin/numactl'):
+                self.__usenumactl = True
+                print "hackbench: using numactl for thread affinity"
 
         self.args = ['hackbench',  '-P',
-                     '-g', str(self.jobs), 
-                     '-l', str(self.params.setdefault('loops', '100')),
-                     '-s', str(self.params.setdefault('datasize', '100'))
+                     '-g', str(self.jobs),
+                     '-l', str(self.params.setdefault('loops', '1000')),
+                     '-s', str(self.params.setdefault('datasize', '1000'))
                      ]
         self.err_sleep = 5.0
+        self.tasks = {}
 
     def build(self):
         self.ready = True
 
-    def start_hackbench(self, inf, outf, errf):
-        self.debug("running: %s" % " ".join(self.args))
-        return subprocess.Popen(self.args, stdin=inf, stdout=outf, stderr=errf)
+    def __starton(self, node):
+        if self.__multinodes:
+            if self.__usenumactl:
+                args = [ 'numactl', '--cpunodebind', node ] + self.args
+            else:
+                cpulist = ",".join([ str(n) for n in self.cpus[node] ])
+                args = ['taskset', '-c', cpulist ] + self.args
+        else:
+            args = self.args
+
+        self.debug("hackbench starting: %s" % " ".join(args))
+
+        return subprocess.Popen(args,
+                                stdin=self.null,
+                                stdout=self.out,
+                                stderr=self.err)
 
     def runload(self):
         # if we don't have any jobs just wait for the stop event and return
         if self.jobs == 0:
             self.stopevent.wait()
             return
-        null = os.open("/dev/null", os.O_RDWR)
+        self.null = os.open("/dev/null", os.O_RDWR)
         if self.logging:
-            out = self.open_logfile("hackbench.stdout")
-            err = self.open_logfile("hackbench.stderr")
+            self.out = self.open_logfile("hackbench.stdout")
+            self.err = self.open_logfile("hackbench.stderr")
         else:
             out = err = null
         self.debug("starting loop (jobs: %d)" % self.jobs)
 
-        p = self.start_hackbench(null, out, err)
+        for n in self.nodes:
+            self.tasks[n] = self.__starton(n)
+
         while not self.stopevent.isSet():
-            try:
-                # if poll() returns an exit status, restart
-                if p.poll() != None:
-                    p = self.start_hackbench(null, out, err)
-                time.sleep(1.0)
-            except OSError, e:
-                if e.errno != errno.ENOMEM:
-                    raise
-                # Catch out-of-memory errors and wait a bit to (hopefully) 
-                # ease memory pressure
-                print "hackbench: %s, sleeping for %f seconds" % (e.strerror, self.err_sleep)
-                time.sleep(self.err_sleep)
-                if self.err_sleep < 60.0:
-                    self.err_sleep *= 2.0
-                if self.err_sleep > 60.0:
-                    self.err_sleep = 60.0
+            for n in self.nodes:
+                try:
+                    # if poll() returns an exit status, restart
+                    if self.tasks[n].poll() != None:
+                        self.tasks[n].wait()
+                        self.tasks[n] = self.__starton(n)
+                except OSError, e:
+                    if e.errno != errno.ENOMEM:
+                        raise
+                    # Catch out-of-memory errors and wait a bit to (hopefully)
+                    # ease memory pressure
+                    print "hackbench: %s, sleeping for %f seconds" % (e.strerror, self.err_sleep)
+                    time.sleep(self.err_sleep)
+                    if self.err_sleep < 60.0:
+                        self.err_sleep *= 2.0
+                    if self.err_sleep > 60.0:
+                        self.err_sleep = 60.0
 
         self.debug("stopping")
-        if p.poll() == None:
-            os.kill(p.pid, SIGKILL)
-        p.wait()
+        for n in self.nodes:
+            if self.tasks[n].poll() == None:
+                os.kill(self.tasks[n].pid, SIGKILL)
+            self.tasks[n].wait()
+
         self.debug("returning from runload()")
-        os.close(null)
+        os.close(self.null)
         if self.logging:
-            os.close(out)
-            os.close(err)
+            os.close(self.out)
+            os.close(self.err)
 
     def genxml(self, x):
-        x.taggedvalue('command_line', self.jobs and ' '.join(self.args) or None, 
+        x.taggedvalue('command_line', self.jobs and ' '.join(self.args) or None,
                       {'name':'hackbench', 'run': self.jobs and '1' or '0'})
 
 def create(params = {}):
