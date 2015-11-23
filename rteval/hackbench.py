@@ -110,7 +110,7 @@ class Hackbench(load.Load):
             self.out = self.open_logfile("hackbench.stdout")
             self.err = self.open_logfile("hackbench.stderr")
         else:
-            out = err = null
+            self.out = self.err = self.null
         self.debug("starting loop (jobs: %d)" % self.jobs)
 
         for n in self.nodes:
