@@ -3,7 +3,7 @@
 
 Name:		rteval
 Version:	1.40
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -71,6 +71,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Mon Nov 23 2015 Clark Williams <williams@redhat.com> - 1.40-2
+- fix version mismatch in spec, setup and rteval
+
 * Fri Nov 20 2015 Clark Williams <williams@redhat.com> - 1.40-1
 - hackbench: modify to avoid cross-node NUMA copies
 
