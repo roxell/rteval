@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	1.40
-Release:	2%{?dist}
+Version:	1.41
+Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -71,6 +71,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Mon Nov 23 2015 Clark Williams <williams@redhat.com> - 1.41-1
+- hackbench: fix naming error in logging filehandles
+
 * Mon Nov 23 2015 Clark Williams <williams@redhat.com> - 1.40-2
 - fix version mismatch in spec, setup and rteval
 
