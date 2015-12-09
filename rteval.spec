@@ -3,7 +3,7 @@
 
 Name:		rteval
 Version:	2.4
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -25,6 +25,7 @@ Requires:	bzip2
 Requires:       kernel-headers
 BuildArch:	noarch
 Obsoletes:	rteval <= 1.7
+Requires:	numactl
 
 %description
 The rteval script is a utility for measuring various aspects of
@@ -94,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Wed Dec  9 2015 Clark Williams <williams@refhat.com> - 2.4.2
+- added Require of package numactl
+
 * Tue Nov 17 2015 Clark Williams <williams@refhat.com> - 2.4.1
 - rework hackbench load to not generate cross-node traffic [1282826]
 
