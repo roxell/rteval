@@ -1,4 +1,4 @@
-#
+
 #   hackbench.py - class to manage an instance of hackbench load
 #
 #   Copyright 2009 - 2013   Clark Williams <williams@redhat.com>
@@ -108,7 +108,7 @@ class Hackbench(CommandLineLoad):
     def __starton(self, node):
         if self.__multinodes:
             if self.__usenumactl:
-                args = [ 'numactl', '--cpubindnode', node ] + self.args
+                args = [ 'numactl', '--cpunodebind', node ] + self.args
             else:
                 cpulist = ",".join([ str(n) for n in self.cpus[node] ])
                 args = ['taskset', '-c', cpulist ] + self.args
@@ -116,10 +116,14 @@ class Hackbench(CommandLineLoad):
             args = self.args
 
         self._log(Log.DEBUG, "starting on node %s: args = %s" % (node, args))
-        return subprocess.Popen(args,
-                                stdin=self.__nullfp,
-                                stdout=self.__out,
-                                stderr=self.__err)
+        p = subprocess.Popen(args,
+                             stdin=self.__nullfp,
+                             stdout=self.__out,
+                             stderr=self.__err)
+        if not p:
+            self._log(Log.DEBUG, "hackbench failed to start on node %s" % node)
+            raise RuntimeError, "hackbench failed to start on node %s" % node
+        return p
 
     def _WorkloadTask(self):
         if self.shouldStop():
