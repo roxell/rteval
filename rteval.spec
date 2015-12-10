@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.4
-Release:	2%{?dist}
+Version:	2.5
+Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Thu Dec 10 2015 Clark Williams <williams@refhat.com> - 2.5-1
+- stop using old numactl --cpubind argument
+
 * Wed Dec  9 2015 Clark Williams <williams@refhat.com> - 2.4.2
 - added Require of package numactl
 
