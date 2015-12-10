@@ -56,7 +56,7 @@ class rtevalModulePrototype(threading.Thread):
                          "finished": threading.Event()}
         self._donotrun = False
         self.__timestamps = {}
-        self.__sleeptime = 5.0
+        self.__sleeptime = 2.0
 
 
     def _log(self, logtype, msg):
