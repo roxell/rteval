@@ -173,17 +173,27 @@ class RtEval(rtevalReport):
                 self._loadmods.Start()
 
             print "rteval run on %s started at %s" % (os.uname()[2], time.asctime())
-            print "started %d loads on %d cores" % (self._loadmods.ModulesLoaded(), self._sysinfo.cpu_getCores(True)),
+            onlinecpus = self._sysinfo.cpu_getCores(True)
+            cpulist = self._loadmods._cfg.GetSection("loads").cpulist
+            if cpulist:
+                print "started %d loads on cores %s" % (self._loadmods.ModulesLoaded(), cpulist),
+            else:
+                print "started %d loads on %d cores" % (self._loadmods.ModulesLoaded(), onlinecpus),
             if self._sysinfo.mem_get_numa_nodes() > 1:
                 print " with %d numa nodes" % self._sysinfo.mem_get_numa_nodes()
             else:
                 print ""
+            cpulist = self._measuremods._MeasurementModules__cfg.GetSection("measurement").cpulist
+            if cpulist:
+                print "started measurement threads on cores %s" % cpulist
+            else:
+                print "started measurement threads on %d cores" % onlinecpus
             print "Run duration: %s seconds" % str(self.__rtevcfg.duration)
 
             # start the cyclictest thread
             measure_profile.Start()
 
-            # Uleash the loads and measurement threads
+            # Unleash the loads and measurement threads
             report_interval = int(self.__rtevcfg.report_interval)
             nthreads = with_loads and self._loadmods.Unleash() or None
             self.__logger.log(Log.INFO, "Waiting 30 seconds to let load modules settle down")
