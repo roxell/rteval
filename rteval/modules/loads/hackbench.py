@@ -63,6 +63,12 @@ class Hackbench(CommandLineLoad):
         for n in self.nodes:
             self.cpus[n] = [ int(c.split('/')[-1][3:]) for c in glob.glob('/sys/devices/system/node/node%s/cpu[0-9]*' % n) ]
             self.cpus[n].sort()
+
+            # if a cpulist was specified, only allow cpus in that list on the node
+            if self.cpulist:
+                self.cpus[n] = [ c for c in self.cpus[n] if c in expand_cpulist(self.cpulist) ]
+
+            # track largest number of cpus used on a node
             if len(self.cpus[n]) > biggest:
                 biggest = len(self.cpus[n])
 
@@ -106,7 +112,7 @@ class Hackbench(CommandLineLoad):
         self.started = False
 
     def __starton(self, node):
-        if self.__multinodes:
+        if self.__multinodes or self.cpulist:
             if self.__usenumactl:
                 args = [ 'numactl', '--cpunodebind', node ] + self.args
             else:
