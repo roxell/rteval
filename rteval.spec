@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.5
+Version:	2.6
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Thu Feb 11 2016 Clark Williams <williams@redhat.com> - 2.6.1
+- update to make --loads-cpulist and --measurement-cpulist work
+
 * Thu Dec 10 2015 Clark Williams <williams@refhat.com> - 2.5-1
 - stop using old numactl --cpubind argument
 
