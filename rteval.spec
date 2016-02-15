@@ -96,7 +96,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Thu Feb 11 2016 Clark Williams <williams@redhat.com> - 2.6.1
-- update to make --loads-cpulist and --measurement-cpulist work
+- update to make --loads-cpulist and --measurement-cpulist work [1306437]
 
 * Thu Dec 10 2015 Clark Williams <williams@refhat.com> - 2.5-1
 - stop using old numactl --cpubind argument
