@@ -24,7 +24,7 @@
 #
 
 """
-Copyright (c) 2008-2013  Red Hat Inc.
+Copyright (c) 2008-2016  Red Hat Inc.
 
 Realtime verification utility
 """
@@ -44,17 +44,15 @@ import version
 
 RTEVAL_VERSION = version.RTEVAL_VERSION
 
-sigint_received = False
+stopsig_received = False
 def sig_handler(signum, frame):
 
-    if signum == signal.SIGINT:
-        global sigint_received
-        sigint_received = True
-        print "*** SIGINT received - stopping rteval run ***"
-    elif signum == signal.SIGTERM:
-        raise RuntimeError("SIGTERM received!")
-
-
+    if signum == signal.SIGINT or signum == signal.SIGTERM:
+        global stopsig_received
+        stopsig_received = True
+        print "*** stop signal received - stopping rteval run ***"
+    else:
+        raise RuntimeError("SIGNAL received! (%d)" % signum)
 
 class RtEval(rtevalReport):
     def __init__(self, config, loadmods, measuremods, logger):
@@ -209,7 +207,7 @@ class RtEval(rtevalReport):
             currtime = time.time()
             rpttime = currtime + report_interval
             load_avg_checked = 5
-            while (currtime <= stoptime) and not sigint_received:
+            while (currtime <= stoptime) and not stopsig_received:
                 time.sleep(60.0)
                 if not measure_profile.isAlive():
                     stoptime = currtime
