@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.6
+Version:	2.7
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -95,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Fri Apr  1 2016 Clark Williams <williams@redhat.com> - 2.7.1
+- treat SIGINT and SIGTERM as valid end-of-run events [1278757]
+- added cpulist options to man page
+
 * Thu Feb 11 2016 Clark Williams <williams@redhat.com> - 2.6.1
 - update to make --loads-cpulist and --measurement-cpulist work [1306437]
 
