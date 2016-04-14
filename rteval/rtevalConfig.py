@@ -37,11 +37,11 @@ from Log import Log
 
 def default_config_search(relative_path, verifdef=os.path.isdir):
     ConfigDirectories=[
-            os.path.join(os.path.expanduser("~" + \
-                    (os.getenv('SUDO_USER') or os.getenv('USER'))), '.rteval'),
-            '/etc/rteval',
-            '/usr/share/rteval'
-            ]
+        os.path.join(os.path.expanduser("~" + \
+                                        (os.getenv('SUDO_USER') or os.getenv('USER')) or ""), '.rteval'),
+        '/etc/rteval',
+        '/usr/share/rteval'
+    ]
 
     if os.path.dirname(os.path.abspath(__file__)) != '/usr/share/rteval':
         ConfigDirectories = [
