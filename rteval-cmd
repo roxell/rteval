@@ -41,7 +41,7 @@ from rteval.Log import Log
 from rteval import RtEval, rtevalConfig
 from rteval.modules.loads import LoadModules
 from rteval.modules.measurement import MeasurementModules
-
+from rteval.version import RTEVAL_VERSION
 
 
 def summarize(repfile, xslt):
@@ -153,8 +153,18 @@ def parse_options(cfg, parser, cmdargs):
     parser.add_option("-O", "--onlyload", dest="rteval___onlyload",
                       action='store_true', default=False,
                       help="only run the loads (don't run measurement threads)")
+    parser.add_option("-V", "--version", dest="rteval__version",
+                      action='store_true', default=False,
+                      help='print rteval version and exit')
+
+    if not cmdargs:
+        cmdargs = ["--help"]
 
     (cmd_opts, cmd_args) = parser.parse_args(args = cmdargs)
+    if cmd_opts.rteval__version:
+        print("rteval version %s" % RTEVAL_VERSION)
+        sys.exit(0);
+
     if cmd_opts.rteval___duration:
         mult = 1.0
         v = cmd_opts.rteval___duration.lower()
