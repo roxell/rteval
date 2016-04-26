@@ -153,7 +153,7 @@ def parse_options(cfg, parser, cmdargs):
     parser.add_option("-O", "--onlyload", dest="rteval___onlyload",
                       action='store_true', default=False,
                       help="only run the loads (don't run measurement threads)")
-    parser.add_option("-V", "--version", dest="rteval__version",
+    parser.add_option("-V", "--version", dest="rteval___version",
                       action='store_true', default=False,
                       help='print rteval version and exit')
 
@@ -161,7 +161,7 @@ def parse_options(cfg, parser, cmdargs):
         cmdargs = ["--help"]
 
     (cmd_opts, cmd_args) = parser.parse_args(args = cmdargs)
-    if cmd_opts.rteval__version:
+    if cmd_opts.rteval___version:
         print("rteval version %s" % RTEVAL_VERSION)
         sys.exit(0);
 
