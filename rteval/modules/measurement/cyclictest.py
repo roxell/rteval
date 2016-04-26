@@ -274,6 +274,8 @@ class Cyclictest(rtevalModulePrototype):
 
         if self.__cfg.has_key('breaktrace') and self.__cfg.breaktrace:
             self.__cmd.append("-b%d" % int(self.__cfg.breaktrace))
+            self.__cmd.append("--tracemark")
+            self.__cmd.append("--notrace")
 
         # Buffer for cyclictest data written to stdout
         self.__cyclicoutput = tempfile.SpooledTemporaryFile(mode='rw+b')
@@ -335,7 +337,12 @@ class Cyclictest(rtevalModulePrototype):
                 # If we don't have any values, don't try parsing
                 continue
 
-            index = int(vals[0])
+            try:
+                index = int(vals[0])
+            except:
+                self._log(Log.DEBUG, "cyclictest: unexpected output: %s" % line)
+                continue
+
             for i,core in enumerate(self.__cpus):
                 self.__cyclicdata[core].bucket(index, int(vals[i+1]))
                 self.__cyclicdata['system'].bucket(index, int(vals[i+1]))
@@ -345,25 +352,6 @@ class Cyclictest(rtevalModulePrototype):
             #print "reducing self.__cyclicdata[%s]" % n
             self.__cyclicdata[n].reduce()
             #print self.__cyclicdata[n]
-
-        # If the breaktrace feature of cyclictest was enabled and triggered,
-        # put the trace into the log directory
-        debugdir = self.__get_debugfs_mount()
-        if self.__breaktraceval and debugdir:
-            trace = os.path.join(debugdir, 'tracing', 'trace')
-            cyclicdir = os.path.join(self.__cfg.reportdir, 'cyclictest')
-            os.mkdir(cyclicdir)
-            shutil.copyfile(trace, os.path.join(cyclicdir, 'breaktrace.log'))
-
-            # Call trace-cmd extract to save an exportable binary blob with trace data
-            # FIXME: For some odd reason, running trace-cmd outside a shell makes it fail on my test system
-            tracecmd = ['sh', '-c', 'trace-cmd extract -o %s' % os.path.join(cyclicdir,'trace.dat')]
-            self._log(Log.DEBUG, 'Executing: %s' % ' '.join(tracecmd))
-            tracecmdproc = subprocess.Popen(tracecmd,
-                                            stdout=self.__nullfp,
-                                            stderr=self.__nullfp,
-                                            stdin=self.__nullfp)
-            tracecmdproc.wait()
 
         self._setFinished()
         self.__started = False
