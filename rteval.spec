@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.7
-Release:	1%{?dist}
+Version:	2.8
+Release:	2%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -16,7 +16,7 @@ BuildRequires:	python
 Requires:	python
 Requires:	python-schedutils python-ethtool python-lxml
 Requires:	python-dmidecode >= 3.10
-Requires:	rt-tests >= 0.65
+Requires:	rt-tests >= 0.97
 Requires:	rteval-loads >= 1.2
 Requires:	rteval-common => %{version}-%{release}
 Requires:	trace-cmd
@@ -42,7 +42,7 @@ Summary: Common rteval files
 BuildArch: noarch
 
 %description common
-Common files used by rteva, rteval-xmlrpc and rteval-parser
+Common files used by rteval, rteval-xmlrpc and rteval-parser
 
 %prep
 %setup -q
@@ -95,6 +95,10 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Tue Apr 26 2016 Clark Williams <williams@redhat.com> - 2.8.1
+- add the --version option to print the rteval version
+- made the --cyclictest-breaktrace option work properly [1209986]
+
 * Fri Apr  1 2016 Clark Williams <williams@redhat.com> - 2.7.1
 - treat SIGINT and SIGTERM as valid end-of-run events [1278757]
 - added cpulist options to man page
