@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.8
-Release:	2%{?dist}
+Version:	2.9
+Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Mon May  9 2016 Clark Williams <williams@redhat.com> - 2.9.1
+- default cpulist for modules if only one specified [1333831]
+
 * Tue Apr 26 2016 Clark Williams <williams@redhat.com> - 2.8.1
 - add the --version option to print the rteval version
 - made the --cyclictest-breaktrace option work properly [1209986]
