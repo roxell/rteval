@@ -42,7 +42,7 @@ from rteval import RtEval, rtevalConfig
 from rteval.modules.loads import LoadModules
 from rteval.modules.measurement import MeasurementModules
 from rteval.version import RTEVAL_VERSION
-
+from rteval.misc import online_cpus, invert_cpulist, compress_cpulist
 
 def summarize(repfile, xslt):
     isarchive = False
@@ -251,6 +251,15 @@ if __name__ == '__main__':
         loadmods.SetupModuleOptions(parser)
         measuremods.SetupModuleOptions(parser)
         cmd_args = parse_options(config, parser, sys.argv[1:])
+
+        # if we only specified one set of cpus (loads or measurement)
+        # default the other to the inverse of the specified list
+        ldcfg = config.GetSection('loads')
+        msrcfg = config.GetSection('measurement')
+        if not ldcfg.cpulist and msrcfg.cpulist:
+            ldcfg.cpulist = compress_cpulist(invert_cpulist(msrcfg.cpulist))
+        if not msrcfg.cpulist and ldcfg.cpulist:
+            msrcfg.cpulist = compress_cpulist(invert_cpulist(ldcfg.cpulist))
 
         logger.log(Log.DEBUG, "workdir: %s" % rtevcfg.workdir)
 

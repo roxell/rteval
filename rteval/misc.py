@@ -38,6 +38,12 @@ def expand_cpulist(cpulist):
 def online_cpus():
     return [ str(c.replace('/sys/devices/system/cpu/cpu', ''))  for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*') ]
 
+def invert_cpulist(cpulist):
+    return [ c for c in online_cpus() if c not in cpulist]
+
+def compress_cpulist(cpulist):
+    return ",".join(cpulist)
+
 def cpuinfo():
     core = -1
     info = {}
