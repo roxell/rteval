@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.9
+Version:	2.10
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Wed Aug  3 2016 Clark Williams <williams@rehdat.com> - 2.10-1
+- bumped version for RHEL 7.3 release
+
 * Mon May  9 2016 Clark Williams <williams@redhat.com> - 2.9.1
 - default cpulist for modules if only one specified [1333831]
 
