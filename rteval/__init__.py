@@ -44,6 +44,8 @@ import version
 
 RTEVAL_VERSION = version.RTEVAL_VERSION
 
+earlystop = False
+
 stopsig_received = False
 def sig_handler(signum, frame):
 
@@ -156,6 +158,7 @@ class RtEval(rtevalReport):
 
 
     def __RunMeasurementProfile(self, measure_profile):
+        global earlystop
         if not isinstance(measure_profile, MeasurementProfile):
             raise Exception("measure_profile is not an MeasurementProfile object")
 
@@ -211,6 +214,7 @@ class RtEval(rtevalReport):
                 time.sleep(60.0)
                 if not measure_profile.isAlive():
                     stoptime = currtime
+                    earlystop = True
                     self.__logger.log(Log.WARN,
                                       "Measurement threads did not use the full time slot. Doing a controlled stop.")
 
@@ -255,6 +259,7 @@ class RtEval(rtevalReport):
 
 
     def Measure(self):
+        global earlystop
         # Run the full measurement suite with reports
         rtevalres = 0
         measure_start = None
@@ -271,6 +276,8 @@ class RtEval(rtevalReport):
         if self.__xmlrpc:
             retvalres = self.__xmlrpc.SendReport(self.GetXMLreport())
 
+        if earlystop:
+            rtevalres = 1
         self._sysinfo.copy_dmesg(self.__reportdir)
         self._tar_results()
         return rtevalres
