@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.10
+Version:	2.11
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Tue Aug 30 2016 Clark Williams <williams@rehdat.com> - 2.11-1
+- make sure we return non-zero for early exit from tests
+
 * Wed Aug  3 2016 Clark Williams <williams@rehdat.com> - 2.10-1
 - bumped version for RHEL 7.3 release
 
