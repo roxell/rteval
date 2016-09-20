@@ -35,10 +35,20 @@ import ConfigParser
 from Log import Log
 
 
+def get_user_name():
+    name = os.getenv('SUDO_USER')
+    if not name:
+        name = os.getenv('USER')
+    if not name:
+        import pwd
+        name = pwd.getpwuid(os.getuid()).pw_name
+    if not name:
+        name = ""
+    return name
+
 def default_config_search(relative_path, verifdef=os.path.isdir):
     ConfigDirectories=[
-        os.path.join(os.path.expanduser("~" + \
-                                        (os.getenv('SUDO_USER') or os.getenv('USER')) or ""), '.rteval'),
+        os.path.join(os.path.expanduser("~" + get_user_name()), '.rteval'),
         '/etc/rteval',
         '/usr/share/rteval'
     ]
