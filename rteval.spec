@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.11
+Version:	2.12
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Tue Sep 20 2016 Clark Williams <williams@rehdat.com> - 2.12-1
+- handle empty environment variables SUDO_USER and USER [1312057]
+
 * Tue Aug 30 2016 Clark Williams <williams@rehdat.com> - 2.11-1
 - make sure we return non-zero for early exit from tests
 
