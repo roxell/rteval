@@ -27,7 +27,7 @@ import os, sys
 import os.path
 import glob
 
-def __sysread(path, obj):
+def _sysread(path, obj):
     fp = open(os.path.join(path,obj), "r")
     return fp.readline().strip()
 
@@ -112,7 +112,7 @@ class Cpus(object):
     # find the nodeid of a particular cpu
     def getnodeid(self, n):
         cpupath = os.path.join(Cpus.cpupath,'cpu%d' % n)
-        return int(self.__sysread(cpupath, "topology/physical_package_id"))
+        return int(_sysread(cpupath, "topology/physical_package_id"))
 
     # check whether cpu n is online
     def isonline(self, n):
@@ -120,7 +120,7 @@ class Cpus(object):
             return True
         path = os.path.join(Cpus.cpupath,'cpu%d' % n)
         if os.path.exists(path):
-            return self.__sysread(path, "online") == 1
+            return _sysread(path, "online") == 1
         return False
 
 #
@@ -133,7 +133,7 @@ class NumaNode(object):
     def __init__(self, path):
         self.path = path
         self.nodeid = int(os.path.basename(path)[4:].strip())
-        self.cpus = Cpus(self.__sysread(self.path, "cpulist"))
+        self.cpus = Cpus(_sysread(self.path, "cpulist"))
         self.getmeminfo()
 
     def __contains__(self, cpu):
@@ -144,10 +144,6 @@ class NumaNode(object):
 
     def __str__(self):
         return self.getcpustr()
-
-    def __sysread(self, path, element):
-        fp = open(os.path.join(path,element), "r")
-        return fp.readline().strip()
 
     # read info about memory attached to this node
     def getmeminfo(self):
@@ -203,10 +199,6 @@ class SysTopology(object):
         n = self.nodes[self.current]
         self.current += 1
         return n
-
-    def __sysread(self, path, obj):
-        fp = open(os.path.join(path, obj), "r")
-        return fp.readline().strip()
 
     def getinfo(self):
         nodes = glob.glob(os.path.join(SysTopology.nodepath, 'node[0-9]*'))
