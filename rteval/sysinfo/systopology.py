@@ -35,7 +35,7 @@ def _sysread(path, obj):
 # class to provide access to a list of cpus
 #
 
-class Cpus(object):
+class CpuList(object):
     "Object that represents a group of system cpus"
 
     cpupath = '/sys/devices/system/cpu'
@@ -109,16 +109,13 @@ class Cpus(object):
     def getcpulist(self):
         return self.cpulist
 
-    # find the nodeid of a particular cpu
-    def getnodeid(self, n):
-        cpupath = os.path.join(Cpus.cpupath,'cpu%d' % n)
-        return int(_sysread(cpupath, "topology/physical_package_id"))
-
     # check whether cpu n is online
     def isonline(self, n):
+        if n not in self.cpulist:
+            raise RuntimeError, "invalid cpu number %d" % n
         if n == 0:
             return True
-        path = os.path.join(Cpus.cpupath,'cpu%d' % n)
+        path = os.path.join(CpuList.cpupath,'cpu%d' % n)
         if os.path.exists(path):
             return _sysread(path, "online") == 1
         return False
@@ -130,18 +127,23 @@ class Cpus(object):
 class NumaNode(object):
     "class representing a system NUMA node"
 
+    # constructor argument is the full path to the /sys node file
+    # e.g. /sys/devices/system/node/node0
     def __init__(self, path):
         self.path = path
         self.nodeid = int(os.path.basename(path)[4:].strip())
-        self.cpus = Cpus(_sysread(self.path, "cpulist"))
+        self.cpus = CpuList(_sysread(self.path, "cpulist"))
         self.getmeminfo()
 
+    # function for the 'in' operator
     def __contains__(self, cpu):
         return cpu in self.cpus
 
+    # allow the 'len' builtin
     def __len__(self):
         return len(self.cpus)
 
+    # string representation of the cpus for this node
     def __str__(self):
         return self.getcpustr()
 
@@ -180,19 +182,23 @@ class SysTopology(object):
     def __len__(self):
         return len(self.nodes.keys())
 
+    # inplement the 'in' function
     def __contains__(self, node):
         for n in self.nodes:
             if self.nodes[n].nodeid == node:
                 return True
         return False
 
+    # allow indexing for the nodes
     def __getitem__(self, key):
         return self.nodes[key]
 
+    # allow iteration over the cpus for the node
     def __iter__(self):
         self.current = 0
         return self
 
+    # iterator function
     def next(self):
         if self.current >= len(self.nodes):
             raise StopIteration
