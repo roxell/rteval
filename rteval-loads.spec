@@ -1,11 +1,11 @@
 Name:		rteval-loads
-Version:	1.3
-Release:	3%{?dist}
+Version:	1.4
+Release:	1%{?dist}
 Summary:	Source files for rteval loads
 Group:		Development/Tools
 License:	GPLv2
 URL:		http://git.kernel.org/?p=linux/kernel/git/clrkwllms/rteval.git
-Source0:	http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.tar.bz2
+Source0:	http://www.kernel.org/pub/linux/kernel/v4.9/linux-4.9.tar.xz
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:	gcc binutils make kernel-headers
@@ -37,6 +37,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc
 
 %changelog
+* Tue Jan 10 2017 Clark Williams <williams@redhat.com> - 1.4-1
+- updated kernel tarball to 4.9
+
 * Fri Jun  5 2015 Clark Williams <williams@redhat.com> - 1.3-3
 - add requires for kernel-header package [1228740]
 

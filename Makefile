@@ -15,7 +15,7 @@ MANDIR	:=	$(DESTDIR)/$(PREFIX)/share/man
 PYLIB	:= 	$(DESTDIR)$(shell python -c 'import distutils.sysconfig;  print distutils.sysconfig.get_python_lib()')
 LOADDIR	:=	loadsource
 
-KLOAD	:=	$(LOADDIR)/linux-2.6.39.tar.bz2
+KLOAD	:=	$(LOADDIR)/linux-4.9.tar.xz
 BLOAD	:=	$(LOADDIR)/dbench-4.0.tar.gz
 LOADS	:=	$(KLOAD) $(BLOAD)
 
@@ -85,7 +85,7 @@ rpm_prep:
 	rm -rf rpm
 	mkdir -p rpm/{BUILD,RPMS,SRPMS,SOURCES,SPECS}
 
-rpms rpm: rpm_prep rtevalrpm loadrpm xmlrpcrpm
+rpms rpm: rpm_prep rtevalrpm loadrpm
 
 rtevalrpm: rteval-$(VERSION).tar.bz2
 	cp $^ rpm/SOURCES

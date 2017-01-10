@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.12
+Version:	2.13
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -17,7 +17,7 @@ Requires:	python
 Requires:	python-schedutils python-ethtool python-lxml
 Requires:	python-dmidecode >= 3.10
 Requires:	rt-tests >= 0.97
-Requires:	rteval-loads >= 1.2
+Requires:	rteval-loads >= 1.4
 Requires:	rteval-common => %{version}-%{release}
 Requires:	trace-cmd
 Requires:	sysstat
@@ -74,7 +74,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/rteval/version.py*
 %{python_sitelib}/rteval/Log.py*
 %{python_sitelib}/rteval/misc.py*
-
+%{python_sitelib}/rteval/systopology.py*
 
 %files
 %defattr(-,root,root,-)
