@@ -147,6 +147,9 @@ class NumaNode(object):
     def __str__(self):
         return self.getcpustr()
 
+    def __int__(self):
+        return self.nodeid
+
     # read info about memory attached to this node
     def getmeminfo(self):
         self.meminfo = {}

@@ -33,7 +33,7 @@
 import os, sys
 import ConfigParser
 from Log import Log
-from sysinfo.systopology import SysTopology
+from systopology import SysTopology
 
 def get_user_name():
     name = os.getenv('SUDO_USER')
@@ -190,8 +190,7 @@ class rtevalConfig(object):
 
         # get our system topology info
         self.__systopology = SysTopology()
-        # debug
-        print self.__systopology
+        print("got system topology: %s" % self.__systopology)
 
         # Import the default config first
         for sect, vals in default_config.items():
