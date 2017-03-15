@@ -21,7 +21,7 @@ LOADS	:=	$(KLOAD) $(BLOAD)
 
 runit:
 	[ -d $(HERE)/run ] || mkdir run
-	python rteval-cmd -D -L -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -f $(HERE)/rteval.conf -i $(HERE)/rteval
+	python rteval-cmd -D -L -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -f $(HERE)/rteval.conf -i $(HERE)/rteval $(EXTRA)
 
 load:
 	[ -d ./run ] || mkdir run
