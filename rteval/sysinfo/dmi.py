@@ -27,8 +27,9 @@
 
 import sys, os
 import libxml2, lxml.etree
-from rteval import rtevalConfig, xmlout
 from rteval.Log import Log
+from rteval import xmlout
+from rteval import rtevalConfig
 
 try:
     import dmidecode
@@ -38,7 +39,7 @@ except:
     pass
 
 def ProcessWarnings():
-    
+
     if not hasattr(dmidecode, 'get_warnings'):
         return
 

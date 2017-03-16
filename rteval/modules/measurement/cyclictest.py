@@ -259,7 +259,7 @@ class Cyclictest(rtevalModulePrototype):
 
         self.__cmd = ['cyclictest',
                       self.__interval,
-                      '-qmu',
+                      '-qmun',
                       '-h %d' % self.__buckets,
                       "-p%d" % int(self.__priority),
                       ]

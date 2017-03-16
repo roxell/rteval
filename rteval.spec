@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.12
+Version:	2.14
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -17,7 +17,7 @@ Requires:	python
 Requires:	python-schedutils python-ethtool python-lxml
 Requires:	python-dmidecode >= 3.10
 Requires:	rt-tests >= 0.97
-Requires:	rteval-loads >= 1.2
+Requires:	rteval-loads >= 1.4
 Requires:	rteval-common => %{version}-%{release}
 Requires:	trace-cmd
 Requires:	sysstat
@@ -74,7 +74,7 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/rteval/version.py*
 %{python_sitelib}/rteval/Log.py*
 %{python_sitelib}/rteval/misc.py*
-
+%{python_sitelib}/rteval/systopology.py*
 
 %files
 %defattr(-,root,root,-)
@@ -95,6 +95,12 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Thu Mar 16 2017 Clark Williams <williams@redhat.com> - 2.14-1
+- removed leftover import of systopology from sysinfo
+
+* Wed Mar 15 2017 Clark Williams <williams@redhat.com> - 2.13-2
+- Updated specfile to correct version and bz [1382155]
+
 * Tue Sep 20 2016 Clark Williams <williams@rehdat.com> - 2.12-1
 - handle empty environment variables SUDO_USER and USER [1312057]
 
