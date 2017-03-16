@@ -2,8 +2,8 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.13
-Release:	2%{?dist}
+Version:	2.14
+Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Thu Mar 16 2017 Clark Williams <williams@redhat.com> - 2.14-1
+- removed leftover import of systopology from sysinfo
+
 * Wed Mar 15 2017 Clark Williams <williams@redhat.com> - 2.13-2
 - Updated specfile to correct version and bz [1382155]
 
