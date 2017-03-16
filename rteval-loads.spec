@@ -38,7 +38,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %changelog
 * Tue Jan 10 2017 Clark Williams <williams@redhat.com> - 1.4-1
-- updated kernel tarball to 4.9
+- updated kernel tarball to 4.9 [1432625]
 
 * Fri Jun  5 2015 Clark Williams <williams@redhat.com> - 1.3-3
 - add requires for kernel-header package [1228740]

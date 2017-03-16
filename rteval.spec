@@ -3,7 +3,7 @@
 
 Name:		rteval
 Version:	2.13
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
 Group:		Development/Tools
@@ -95,6 +95,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/bin/rteval
 
 %changelog
+* Wed Mar 15 2017 Clark Williams <williams@redhat.com> - 2.13-2
+- Updated specfile to correct version and bz [1382155]
+
 * Tue Sep 20 2016 Clark Williams <williams@rehdat.com> - 2.12-1
 - handle empty environment variables SUDO_USER and USER [1312057]
 
