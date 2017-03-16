@@ -32,7 +32,6 @@ from cputopology import CPUtopology
 from memory import MemoryInfo
 from osinfo import OSInfo
 from network import NetworkInfo
-import systopology
 import dmi
 
 class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology, MemoryInfo, OSInfo, NetworkInfo):
