@@ -35,8 +35,7 @@ libxml2-python
   http://xmlsoft.org/
 
 rt-tests
-   git://git.kernel.org/pub/scm/linux/kernel/git/clrkwllms/rt-tests.git
-
+  git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
 
 Clark Williams <williams@redhat.com> wrote rteval
 David Sommerseth <davids@redhat.com> wrote the XML-RPC and database
