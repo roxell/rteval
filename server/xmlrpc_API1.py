@@ -2,7 +2,7 @@
 #   xmlrpc_API1.py
 #   XML-RPC functions supported by the API1 version for the rteval server
 #
-#   Copyright 2009      David Sommerseth <davids@redhat.com>
+#   Copyright 2009 - 2013   David Sommerseth <davids@redhat.com>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 #   For the avoidance of doubt the "preferred form" of this code is one which
 #   is in an open unpatent encumbered format. Where cryptographic key signing
@@ -24,6 +24,7 @@
 #   including keys needed to generate an equivalently functional executable
 #   are deemed to be part of the source code.
 #
+
 import os
 import bz2
 import base64
@@ -93,7 +94,7 @@ class XMLRPC_API1():
 
         # Save a copy of the report on the file system
         # Make sure we have a directory to write files into
-        self.__mkdatadir(self.config.datadir + '/queue/')
+        self.__mkdatadir(os.path.join(self.config.datadir, 'queue'))
         fname = self.__getfilename('queue/', ('%s' % clientid), '.xml', False)
         xmldoc.saveFormatFileEnc(fname,'UTF-8',1)
         if self.debug:

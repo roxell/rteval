@@ -1,7 +1,8 @@
 #
 #   dmi.py - class to wrap DMI Table information
 #
-#   Copyright 2009,2010   Clark Williams <williams@redhat.com>
+#   Copyright 2009 - 2013   Clark Williams <williams@redhat.com>
+#   Copyright 2009 - 2013   David Sommerseth <davids@redhat.com>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -13,9 +14,9 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 #   For the avoidance of doubt the "preferred form" of this code is one which
 #   is in an open unpatent encumbered format. Where cryptographic key signing
@@ -24,26 +25,22 @@
 #   are deemed to be part of the source code.
 #
 
-import sys
-import os
-import subprocess
-sys.pathconf = "."
-import xmlout
-import libxml2
-import libxslt
+import sys, os
+import libxml2, lxml.etree
+from rteval.Log import Log
+from rteval import xmlout
+from rteval import rtevalConfig
 
 try:
     import dmidecode
+    dmidecode_loaded = True
 except:
-    class dmidecode(object):
-        fake = 1
-        def __init__(self):
-            pass
-        
+    dmidecode_loaded = False
+    pass
 
 def ProcessWarnings():
-    
-    if hasattr(dmidecode, "fake") or not hasattr(dmidecode, 'get_warnings'):
+
+    if not hasattr(dmidecode, 'get_warnings'):
         return
 
     warnings = dmidecode.get_warnings()
@@ -67,37 +64,50 @@ def ProcessWarnings():
 class DMIinfo(object):
     '''class used to obtain DMI info via python-dmidecode'''
 
-    def __init__(self, config):
-        self.version = '0.3'
-        self.smbios = None
-        self.sharedir = config.installdir
+    def __init__(self, config, logger):
+        self.__version = '0.5'
 
-        if hasattr(dmidecode, "fake"):
+        if not dmidecode_loaded:
+            logger.log(Log.DEBUG|Log.WARN, "No dmidecode module found, ignoring DMI tables")
+            self.__fake = True
             return
 
-        self.dmixml = dmidecode.dmidecodeXML()
-        self.smbios = dmidecode.dmi.replace('SMBIOS ', '').replace(' present', '')
+        self.__fake = False
+        self.__dmixml = dmidecode.dmidecodeXML()
 
-        xsltdoc = self.__load_xslt('rteval_dmi.xsl')
-        self.xsltparser = libxslt.parseStylesheetDoc(xsltdoc)
+        self.__xsltparser = self.__load_xslt('rteval_dmi.xsl')
 
 
     def __load_xslt(self, fname):
+        xsltfile = None
         if os.path.exists(fname):
-            return libxml2.parseFile(fname)
-        elif os.path.exists(self.sharedir + '/' + fname):
-            return libxml2.parseFile(self.sharedir + '/' + fname)
-        else:
-            raise RuntimeError, 'Could not locate XSLT template for DMI data (%s)' % fname
+            xsltfile = open(fname, "r")
+        elif rtevalConfig.default_config_search([fname], os.path.isfile):
+            xsltfile = open(rtevalConfig.default_config_search([fname], os.path.isfile), "r")
 
-    def genxml(self, xml):
-        if hasattr(dmidecode, "fake"):
-            return
-        self.dmixml.SetResultType(dmidecode.DMIXML_DOC)
-        resdoc = self.xsltparser.applyStylesheet(self.dmixml.QuerySection('all'), None)
-        node = resdoc.getRootElement().copyNode(1)
-        node.newProp("DMIinfo_version", self.version)
-        xml.AppendXMLnodes(node)
+        if xsltfile:
+            xsltdoc = lxml.etree.parse(xsltfile)
+            ret = lxml.etree.XSLT(xsltdoc)
+            xsltfile.close()
+            return ret
+
+        raise RuntimeError, 'Could not locate XSLT template for DMI data (%s)' % (self.sharedir + '/' + fname)
+
+
+    def MakeReport(self):
+        rep_n = libxml2.newNode("DMIinfo")
+        rep_n.newProp("version", self.__version)
+        if self.__fake:
+            rep_n.addContent("No DMI tables available")
+            rep_n.newProp("not_available", "1")
+        else:
+            self.__dmixml.SetResultType(dmidecode.DMIXML_DOC)
+            dmiqry = xmlout.convert_libxml2_to_lxml_doc(self.__dmixml.QuerySection('all'))
+            resdoc = self.__xsltparser(dmiqry)
+            dmi_n = xmlout.convert_lxml_to_libxml2_nodes(resdoc.getroot())
+            rep_n.addChild(dmi_n)
+        return rep_n
+
 
 
 def unit_test(rootdir):
@@ -105,7 +115,7 @@ def unit_test(rootdir):
 
     class unittest_ConfigDummy(object):
         def __init__(self, rootdir):
-            self.config = {'installdir': '%s/rteval'}
+            self.config = {'installdir': '/usr/share/rteval'}
             self.__update_vars()
 
         def __update_vars(self):
@@ -118,13 +128,14 @@ def unit_test(rootdir):
             print "** ERROR **  Must be root to run this unit_test()"
             return 1
 
+        log = Log()
+        log.SetLogVerbosity(Log.DEBUG|Log.INFO)
         cfg = unittest_ConfigDummy(rootdir)
-        d = DMIinfo(cfg)
-        x = xmlout.XMLOut('dmi_test', "0.0")
-        x.NewReport()
-        d.genxml(x)
-        x.close()
-        x.Write('-')
+        d = DMIinfo(cfg, log)
+        dx = d.MakeReport()
+        x = libxml2.newDoc("1.0")
+        x.setRootElement(dx)
+        x.saveFormatFileEnc("-", "UTF-8", 1)
         return 0
     except Exception, e:
         print "** EXCEPTION: %s" % str(e)

@@ -1,0 +1,322 @@
+#!/usr/bin/python -tt
+# -*- coding: utf-8 -*-
+#
+#   rteval - script for evaluating platform suitability for RT Linux
+#
+#           This program is used to determine the suitability of
+#           a system for use in a Real Time Linux environment.
+#           It starts up various system loads and measures event
+#           latency while the loads are running. A report is generated
+#           to show the latencies encountered during the run.
+#
+#   Copyright 2009 - 2013   Clark Williams <williams@redhat.com>
+#   Copyright 2009 - 2013   David Sommerseth <davids@redhat.com>
+#   Copyright 2012 - 2013   Raphaël Beamonte <raphael.beamonte@gmail.com>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#
+#   For the avoidance of doubt the "preferred form" of this code is one which
+#   is in an open unpatent encumbered format. Where cryptographic key signing
+#   forms part of the process of creating an executable the information
+#   including keys needed to generate an equivalently functional executable
+#   are deemed to be part of the source code.
+#
+
+import sys, os, time, optparse, tempfile
+import libxml2, lxml.etree
+from datetime import datetime
+from rteval.Log import Log
+from rteval import RtEval, rtevalConfig
+from rteval.modules.loads import LoadModules
+from rteval.modules.measurement import MeasurementModules
+from rteval.version import RTEVAL_VERSION
+from rteval.misc import online_cpus, invert_cpulist, compress_cpulist
+
+def summarize(repfile, xslt):
+    isarchive = False
+    summaryfile = repfile
+    if repfile.endswith(".tar.bz2"):
+        import tarfile
+        try:
+            t = tarfile.open(repfile)
+        except:
+            print "Don't know how to summarize %s (tarfile open failed)" % repfile
+            return
+        element = None
+        for f in t.getnames():
+            if f.find('summary.xml') != -1:
+                element = f
+                break
+        if element == None:
+            print "No summary.xml found in tar archive %s" % repfile
+            return
+        tmp = tempfile.gettempdir()
+        t.extract(element, path=tmp)
+        summaryfile = os.path.join(tmp, element)
+        isarchive = True
+
+    # Load the XSLT template
+    xsltfp = open(xslt, "r")
+    xsltdoc = lxml.etree.parse(xsltfp)
+    xsltprs = lxml.etree.XSLT(xsltdoc)
+    xsltfp.close()
+
+    # Load the summay.xml report - with some simple sanity checks
+    xmlfp = open(summaryfile, "r")
+    xmldoc = lxml.etree.parse(xmlfp)
+    xmlfp.close()
+
+    if xmldoc.docinfo.root_name != 'rteval':
+        raise RuntimeError("The report doesn't seem like a rteval summary report")
+
+    # Parse and print the report through the XSLT template - preserve proper encoding
+    resdoc = xsltprs(xmldoc)
+    print unicode(resdoc).encode('UTF-8')
+
+    # Clean up
+    del resdoc
+    del xmldoc
+    del xsltprs
+    del xsltdoc
+
+    if isarchive:
+        os.unlink(summaryfile)
+
+
+
+def parse_options(cfg, parser, cmdargs):
+    '''parse the command line arguments'''
+
+    rtevcfg = cfg.GetSection('rteval')
+    #
+    # All the destination variables here should go into the 'rteval' section,
+    # thus they are prefixed with 'rteval___'.
+    # See rteval/rtevalConfig::UpdateFromOptionParser() method for more info
+    #
+    parser.add_option("-d", "--duration", dest="rteval___duration",
+                      type="string", default=rtevcfg.duration, metavar="DURATION",
+                      help="specify length of test run (default: %default)")
+    parser.add_option("-v", "--verbose", dest="rteval___verbose",
+                      action="store_true", default=rtevcfg.verbose,
+                      help="turn on verbose prints (default: %default)")
+    parser.add_option("-q", "--quiet", dest="rteval___quiet",
+                      action="store_true", default=rtevcfg.quiet,
+                      help="turn on quiet mode (default: %default)")
+    parser.add_option("-w", "--workdir", dest="rteval___workdir",
+                      type="string", default=rtevcfg.workdir, metavar="DIRECTORY",
+                      help="top directory for rteval data (default: %default)")
+    parser.add_option("-l", "--loaddir", dest="rteval___srcdir",
+                      type="string", default=rtevcfg.srcdir, metavar="DIRECTORY",
+                      help="directory for load source tarballs (default: %default)")
+    parser.add_option("-i", "--installdir", dest="rteval___installdir",
+                      type="string", default=rtevcfg.installdir, metavar="DIRECTORY",
+                      help="place to locate installed templates (default: %default)")
+    parser.add_option("-s", "--sysreport", dest="rteval___sysreport",
+                      action="store_true", default=rtevcfg.sysreport,
+                      help='run sysreport to collect system data (default: %default)')
+    parser.add_option("-D", '--debug', dest='rteval___debugging',
+                      action='store_true', default=rtevcfg.debugging,
+                      help='turn on debug prints (default: %default)')
+    parser.add_option("-X", '--xmlrpc-submit', dest='rteval___xmlrpc',
+                      action='store', default=rtevcfg.xmlrpc, metavar='HOST',
+                      help='Hostname to XML-RPC server to submit reports')
+    parser.add_option("-P", "--xmlrpc-no-abort", dest="rteval___xmlrpc_noabort",
+                      action='store_true', default=False,
+                      help="Do not abort if XML-RPC server do not respond to ping request");
+    parser.add_option("-Z", '--summarize', dest='rteval___summarize',
+                      action='store_true', default=False,
+                      help='summarize an already existing XML report')
+    parser.add_option("-H", '--raw-histogram', dest='rteval___rawhistogram',
+                      action='store_true', default=False,
+                      help='Generate raw histogram data for an already existing XML report')
+    parser.add_option("-f", "--inifile", dest="rteval___inifile",
+                      type='string', default=None, metavar="FILE",
+                      help="initialization file for configuring loads and behavior")
+    parser.add_option("-a", "--annotate", dest="rteval___annotate",
+                      type="string", default=None, metavar="STRING",
+                      help="Add a little annotation which is stored in the report")
+    parser.add_option("-L", "--logging", dest="rteval___logging",
+                      action='store_true', default=False,
+                      help='log the output of the loads in the report directory')
+    parser.add_option("-O", "--onlyload", dest="rteval___onlyload",
+                      action='store_true', default=False,
+                      help="only run the loads (don't run measurement threads)")
+    parser.add_option("-V", "--version", dest="rteval___version",
+                      action='store_true', default=False,
+                      help='print rteval version and exit')
+
+    if not cmdargs:
+        cmdargs = ["--help"]
+
+    (cmd_opts, cmd_args) = parser.parse_args(args = cmdargs)
+    if cmd_opts.rteval___version:
+        print("rteval version %s" % RTEVAL_VERSION)
+        sys.exit(0);
+
+    if cmd_opts.rteval___duration:
+        mult = 1.0
+        v = cmd_opts.rteval___duration.lower()
+        if v.endswith('s'):
+            v = v[:-1]
+        elif v.endswith('m'):
+            v = v[:-1]
+            mult = 60.0
+        elif v.endswith('h'):
+            v = v[:-1]
+            mult = 3600.0
+        elif v.endswith('d'):
+            v = v[:-1]
+            mult = 3600.0 * 24.0
+        cmd_opts.rteval___duration = float(v) * mult
+
+    # Update the config object with the parsed arguments
+    cfg.UpdateFromOptionParser(parser)
+
+    return cmd_args
+
+
+
+if __name__ == '__main__':
+    from rteval.sysinfo import dmi
+
+    dmi.ProcessWarnings()
+
+    # set LD_BIND_NOW to resolve shared library symbols
+    # note: any string will do, nothing significant about 'rteval'
+
+    os.environ['LD_BIND_NOW'] = 'rteval'
+
+    try:
+        # Prepare logging
+        logger = Log()
+        logger.SetLogVerbosity(Log.NONE)
+
+        # setup initial configuration
+        config = rtevalConfig.rtevalConfig(logger=logger)
+
+        # Before really parsing options, see if we have been given a config file in the args
+        # and load it - just so that default values are according to the config file
+        try:
+            cfgfile = sys.argv[sys.argv.index('-f')+1]
+            config.Load(cfgfile)
+        except IndexError:
+            # Missing file argument
+            raise RuntimeError('The -f option requires a file name to the configuration file')
+        except ValueError:
+            # No configuration file given, load defaults
+            config.Load()
+            pass
+
+        if not config.HasSection('loads'):
+            config.AppendConfig('loads',{
+                    'kcompile'   : 'module',
+                    'hackbench'  : 'module' })
+
+        if not config.HasSection('measurement'):
+            config.AppendConfig('measurement', {
+                    'cyclictest' : 'module',
+                    'sysstat' : 'module'})
+
+        # Prepare log levels before loading modules, not to have unwanted log messages
+        rtevcfg = config.GetSection('rteval')
+        if (sys.argv.count('-v')+sys.argv.count('--verbose')) > 0:
+            rtevcfg.verbose = True
+        if (sys.argv.count('-D')+sys.argv.count('--debug')) > 0:
+            rtevcfg.debugging = True
+        if (sys.argv.count('-q')+sys.argv.count('--quiet')) > 0:
+            rtevcfg.quiet = True
+        loglev = (not rtevcfg.quiet and (Log.ERR | Log.WARN)) \
+                | (rtevcfg.verbose and Log.INFO) \
+                | (rtevcfg.debugging and Log.DEBUG)
+        logger.SetLogVerbosity(loglev)
+
+        # Load modules
+        loadmods = LoadModules(config, logger=logger)
+        measuremods = MeasurementModules(config, logger=logger)
+
+        # parse command line options
+        parser = optparse.OptionParser()
+        loadmods.SetupModuleOptions(parser)
+        measuremods.SetupModuleOptions(parser)
+        cmd_args = parse_options(config, parser, sys.argv[1:])
+
+        # if we only specified one set of cpus (loads or measurement)
+        # default the other to the inverse of the specified list
+        ldcfg = config.GetSection('loads')
+        msrcfg = config.GetSection('measurement')
+        if not ldcfg.cpulist and msrcfg.cpulist:
+            ldcfg.cpulist = compress_cpulist(invert_cpulist(msrcfg.cpulist))
+        if not msrcfg.cpulist and ldcfg.cpulist:
+            msrcfg.cpulist = compress_cpulist(invert_cpulist(ldcfg.cpulist))
+
+        logger.log(Log.DEBUG, "workdir: %s" % rtevcfg.workdir)
+
+        # if --summarize was specified then just parse the XML, print it and exit
+        if rtevcfg.summarize or rtevcfg.rawhistogram:
+            if len(cmd_args) < 1:
+                raise RuntimeError, "Must specify at least one XML file with --summarize!"
+
+            for x in cmd_args:
+                if rtevcfg.summarize:
+                    summarize(x, '%s/rteval_text.xsl' % rtevcfg.installdir)
+                elif rtevcfg.rawhistogram:
+                    summarize(x, '%s/rteval_histogram_raw.xsl' % rtevcfg.installdir)
+
+            sys.exit(0)
+
+        if os.getuid() != 0:
+            print "Must be root to run rteval!"
+            sys.exit(-1)
+
+        logger.log(Log.DEBUG, '''rteval options:
+     workdir: %s
+     loaddir: %s
+     reportdir: %s
+     verbose: %s
+     debugging: %s
+     logging:  %s
+     duration: %f
+     sysreport: %s''' % (
+                rtevcfg.workdir, rtevcfg.srcdir,
+                rtevcfg.reportdir, rtevcfg.verbose,
+                rtevcfg.debugging, rtevcfg.logging,
+                rtevcfg.duration, rtevcfg.sysreport))
+
+        if not os.path.isdir(rtevcfg.workdir):
+            raise RuntimeError, "work directory %s does not exist" % rtevcfg.workdir
+
+
+        rteval = RtEval(config, loadmods, measuremods, logger)
+        rteval.Prepare(rtevcfg.onlyload)
+
+        if rtevcfg.onlyload:
+            # If --onlyload were given, just kick off the loads and nothing more
+            # No reports will be created.
+            loadmods.Start()
+            nthreads = loadmods.Unleash()
+            logger.log(Log.INFO, "Started %i load threads - will run for %f seconds" % (
+                    nthreads, rtevcfg.duration))
+            logger.log(Log.INFO, "No measurements will be performed, due to the --onlyload option")
+            time.sleep(rtevcfg.duration)
+            loadmods.Stop()
+            ec = 0
+        else:
+            # ... otherwise, run the full measurement suite with loads
+            ec = rteval.Measure()
+            logger.log(Log.DEBUG, "exiting with exit code: %d" % ec)
+
+        sys.exit(ec)
+    except KeyboardInterrupt:
+        sys.exit(0)

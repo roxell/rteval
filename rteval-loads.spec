@@ -1,14 +1,14 @@
 Name:		rteval-loads
-Version:	1.3
+Version:	1.4
 Release:	1%{?dist}
 Summary:	Source files for rteval loads
 Group:		Development/Tools
 License:	GPLv2
 URL:		http://git.kernel.org/?p=linux/kernel/git/clrkwllms/rteval.git
-Source0:	http://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.39.tar.bz2
+Source0:	http://www.kernel.org/pub/linux/kernel/v4.9/linux-4.9.tar.xz
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires:	gcc binutils make
+Requires:	gcc binutils make kernel-headers
 Obsoletes:	rteval-kcompile >= 1.0
 Obsoletes:	rteval-hackbench >= 1.0
 BuildArch:	noarch
@@ -37,6 +37,15 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc
 
 %changelog
+* Tue Jan 10 2017 Clark Williams <williams@redhat.com> - 1.4-1
+- updated kernel tarball to 4.9 [1432625]
+
+* Fri Jun  5 2015 Clark Williams <williams@redhat.com> - 1.3-3
+- add requires for kernel-header package [1228740]
+
+* Mon Nov 10 2014 Luis Claudio R. Goncalves <lgoncalv@redhat.com> - 1.3-2
+-  rebuild for RHEL-7.1 (1151569)
+
 * Fri May 20 2011 Clark Williams <williams@redhat.com> - 1.3-1
 - updated kernel tarball to 2.6.39
 
@@ -50,7 +59,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - removed hackbench tarball (now using rt-tests hackbench)
 
 * Fri Feb 19 2010 Clark Williams <williams@redhat.com> - 1.1-1
-- updated hackbench source with fixes from David Sommerseth 
+- updated hackbench source with fixes from David Sommerseth
   <davids@redhat.com> to cleanup child processes
 
 * Thu Nov  5 2009 Clark Williams <williams@redhat.com> - 1.0-1

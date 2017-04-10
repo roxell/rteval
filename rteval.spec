@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	1.41
+Version:	2.14
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -14,12 +14,18 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	python
 Requires:	python
-Requires:	python-schedutils python-ethtool libxslt-python >= 1.1.17
+Requires:	python-schedutils python-ethtool python-lxml
 Requires:	python-dmidecode >= 3.10
-Requires:	rt-tests >= 0.65
-Requires:	rteval-loads >= 1.2
+Requires:	rt-tests >= 0.97
+Requires:	rteval-loads >= 1.4
+Requires:	rteval-common => %{version}-%{release}
+Requires:	trace-cmd
+Requires:	sysstat
+Requires:	bzip2
+Requires:       kernel-headers
 BuildArch:	noarch
 Obsoletes:	rteval <= 1.7
+Requires:	numactl
 
 %description
 The rteval script is a utility for measuring various aspects of
@@ -30,30 +36,45 @@ is run to measure event response time. After the run time completes,
 a statistical analysis of the event response times is done and printed
 to the screen.
 
+
+%package common
+Summary: Common rteval files
+BuildArch: noarch
+
+%description common
+Common files used by rteval, rteval-xmlrpc and rteval-parser
+
 %prep
 %setup -q
 
 # version sanity check (make sure specfile and rteval.py match)
-srcver=$(awk '/version =/ { print $3; }' rteval/rteval.py | sed -e 's/"\(.*\)"/\1/')
+cp rteval/version.py rtevalversion.py
+srcver=$(%{__python} -c "from rtevalversion import RTEVAL_VERSION; print RTEVAL_VERSION")
+rm -rf rtevalversion.py
 if [ $srcver != %{version} ]; then
    printf "\n***\n*** rteval spec file version do not match the rteval/rteval.py version\n***\n\n"
    exit -1
 fi
 
 %build
-
+%{__python} setup.py build
 
 %install
-rm -rf ${RPM_BUILD_ROOT}
-mkdir -p ${RPM_BUILD_ROOT}
-make DESTDIR=${RPM_BUILD_ROOT} install_rteval
-mkdir -p ${RPM_BUILD_ROOT}/usr/bin
-# note that python_sitelib has a leading slash...
-ln -s ../..%{python_sitelib}/rteval/rteval.py ${RPM_BUILD_ROOT}/usr/bin/rteval
-
+%{__python} setup.py install --root=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%files common
+%doc COPYING
+%dir %{_datadir}/%{name}
+%{python_sitelib}/rteval/rtevalclient.py*
+%{python_sitelib}/rteval/rtevalConfig.py*
+%{python_sitelib}/rteval/rtevalXMLRPC.py*
+%{python_sitelib}/rteval/version.py*
+%{python_sitelib}/rteval/Log.py*
+%{python_sitelib}/rteval/misc.py*
+%{python_sitelib}/rteval/systopology.py*
 
 %files
 %defattr(-,root,root,-)
@@ -61,39 +82,110 @@ rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/*.egg-info
 %endif
 
-%dir %{_datadir}/%{name}
-
-%doc COPYING doc/rteval.txt
-%{_mandir}/man8/rteval.8*
-%{_datadir}/%{name}/rteval_*.xsl
+%doc COPYING README doc/rteval.txt
+%{_mandir}/man8/rteval.8.gz
 %config(noreplace) %{_sysconfdir}/rteval.conf
-%{python_sitelib}/rteval/
+%{_datadir}/%{name}/rteval_*.xsl
+%{python_sitelib}/rteval/__init__.py*
+%{python_sitelib}/rteval/rtevalMailer.py*
+%{python_sitelib}/rteval/rtevalReport.py*
+%{python_sitelib}/rteval/xmlout.py*
+%{python_sitelib}/rteval/modules
+%{python_sitelib}/rteval/sysinfo
 /usr/bin/rteval
 
 %changelog
-* Mon Nov 23 2015 Clark Williams <williams@redhat.com> - 1.41-1
-- hackbench: fix naming error in logging filehandles
+* Thu Mar 16 2017 Clark Williams <williams@redhat.com> - 2.14-1
+- removed leftover import of systopology from sysinfo
 
-* Mon Nov 23 2015 Clark Williams <williams@redhat.com> - 1.40-2
-- fix version mismatch in spec, setup and rteval
+* Wed Mar 15 2017 Clark Williams <williams@redhat.com> - 2.13-2
+- Updated specfile to correct version and bz [1382155]
 
-* Fri Nov 20 2015 Clark Williams <williams@redhat.com> - 1.40-1
-- hackbench: modify to avoid cross-node NUMA copies
+* Tue Sep 20 2016 Clark Williams <williams@rehdat.com> - 2.12-1
+- handle empty environment variables SUDO_USER and USER [1312057]
 
-* Thu Jul  9 2015 Clark Williams <williams@redhat.com> - 1.39-2
-- fixed up specfile damage from merge
+* Tue Aug 30 2016 Clark Williams <williams@rehdat.com> - 2.11-1
+- make sure we return non-zero for early exit from tests
 
-* Mon Jun 29 2015 Clark Williams <williams@redhat.com> - 1.39-1
-- merged David Sommerseth devel branch
+* Wed Aug  3 2016 Clark Williams <williams@rehdat.com> - 2.10-1
+- bumped version for RHEL 7.3 release
 
-* Tue Sep 17 2013 Clark Williams <williams@redhat.com> - 1.38-1
-- cleaned up incorrect usage of percent signs in changelog
-- added data validation checks to histogram parsing code
+* Mon May  9 2016 Clark Williams <williams@redhat.com> - 2.9.1
+- default cpulist for modules if only one specified [1333831]
 
-* Thu Dec 13 2012 Clark Williams <williams@redhat.com> - 1.37-1
-- added module specific command line options
-- From Raphaël Beamonte <raphael.beamonte@gmail.com>:
-  - Change getcmdpath method to use only python calls to find paths
+* Tue Apr 26 2016 Clark Williams <williams@redhat.com> - 2.8.1
+- add the --version option to print the rteval version
+- made the --cyclictest-breaktrace option work properly [1209986]
+
+* Fri Apr  1 2016 Clark Williams <williams@redhat.com> - 2.7.1
+- treat SIGINT and SIGTERM as valid end-of-run events [1278757]
+- added cpulist options to man page
+
+* Thu Feb 11 2016 Clark Williams <williams@redhat.com> - 2.6.1
+- update to make --loads-cpulist and --measurement-cpulist work [1306437]
+
+* Thu Dec 10 2015 Clark Williams <williams@refhat.com> - 2.5-1
+- stop using old numactl --cpubind argument
+
+* Wed Dec  9 2015 Clark Williams <williams@refhat.com> - 2.4.2
+- added Require of package numactl
+
+* Tue Nov 17 2015 Clark Williams <williams@refhat.com> - 2.4.1
+- rework hackbench load to not generate cross-node traffic [1282826]
+
+* Wed Aug 12 2015 Clark Williams <williams@redhat.com> - 2.3-1
+- comment out HWLatDetect module from default config [1245699]
+
+* Wed Jun 10 2015 Clark Williams <williams@redhat.com> - 2.2-1
+- add --loads-cpulist and --measurement-cpulist to allow cpu placement [1230401]
+
+* Thu Apr 23 2015 Luis Claudio R. Goncalves <lgoncalv@redhat.com> - 2.1-8
+- load default configs when no config file is specified (Jiri kastner) [1212452]
+
+* Wed Jan 14 2015 Clark Williams <williams@redhat.com> - 2.1-7
+- added requires of bzip2 to specfile [1151567]
+
+* Thu Jan  8 2015 Clark Williams <williams@redhat.com> - 2.1-6
+- cleaned up product documentation [1173315]
+
+* Mon Nov 10 2014 Luis Claudio R. Goncalves <lgoncalv@redhat.com> - 2.1-5
+- rebuild for RHEL-7.1 (1151567)
+
+* Thu Mar 27 2014 Clark Williams <williams@redhat.com> - 2.1-4
+- cherry-picked old commit to deal with installdir problem
+
+* Wed Mar 26 2014 Clark Williams <williams@redhat.com> - 2.1-3
+- added sysstat requires to specfile
+
+* Tue Mar 12 2013 David Sommerseth <davids@redhat.com> - 2.1-2
+- Migrated from libxslt-python to python-lxml
+
+* Fri Jan 18 2013 David Sommerseth <davids@redhat.com> - 2.1-1
+- Made some log lines clearer
+- cyclictest: Added --cyclictest-breaktrace feature
+- cyclictest: Removed --cyclictest-distance option
+- cyclictest: Use a tempfile buffer for cyclictest's stdout data
+- cyclictest: Report if breaktrace was triggered
+- cyclictest: Make the unit test work again
+- cyclictest: Only log and show statistic data when samples are collected
+- Copyright updates
+
+* Thu Jan 17 2013 David Sommerseth <davids@redhat.com> - 2.0.1-1
+- Fix up type casting in the core module code
+- hwlatdetect: Add some more useful debug info
+- Reworked the run logic for modules - allow them to flag they won't run
+- Fixed a few log messages in load modules
+- Add a 30 seconds sleep before unleashing the measurement threads
+
+* Thu Jan 10 2013 David Sommerseth <davids@redhat.com> - 2.0-3
+- Separate out RTEVAL_VERSION into rteval.version, to avoid
+  massive BuildRequirements
+
+* Fri Dec 21 2012 David Sommerseth <davids@redhat.com> - 2.0-2
+- Split out common files into rteval-common
+
+* Fri Dec 21 2012 David Sommerseth <davids@redhat.com> - 2.0-1
+- Updated to rteval v2.0 and reworked spec file to use setup.py directly
 
 * Tue Oct 23 2012 Clark Williams <williams@redhat.com> - 1.36-1
 - deal with system not having dmidecode python module

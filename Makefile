@@ -1,29 +1,10 @@
 HERE	:=	$(shell pwd)
 PACKAGE :=	rteval
-VERSION :=      $(shell awk '/Version:/ { print $$2 }' ${PACKAGE}.spec | head -n 1)
+VERSION :=      $(shell python -c "from rteval import RTEVAL_VERSION; print RTEVAL_VERSION")
 D	:=	10
-PYSRC	:=	rteval/rteval.py 	\
-		rteval/cputopology.py	\
-		rteval/cyclictest.py 	\
-		rteval/dmi.py 		\
-		rteval/hackbench.py 	\
-		rteval/__init__.py 	\
-		rteval/kcompile.py 	\
-		rteval/load.py 		\
-		rteval/rtevalclient.py 	\
-		rteval/rtevalConfig.py 	\
-		rteval/rtevalMailer.py 	\
-		rteval/util.py		\
-		rteval/xmlout.py
-
-XSLSRC	:=	rteval/rteval_dmi.xsl 	\
-		rteval/rteval_text.xsl  \
-		rteval/rteval_histogram_raw.xsl 
-
-CONFSRC	:=	rteval/rteval.conf
 
 # XML-RPC related files
-XMLRPCVER := 1.5
+XMLRPCVER := 1.6
 XMLRPCDIR := server
 
 DESTDIR	:=
@@ -34,26 +15,28 @@ MANDIR	:=	$(DESTDIR)/$(PREFIX)/share/man
 PYLIB	:= 	$(DESTDIR)$(shell python -c 'import distutils.sysconfig;  print distutils.sysconfig.get_python_lib()')
 LOADDIR	:=	loadsource
 
-KLOAD	:=	$(LOADDIR)/linux-2.6.39.tar.bz2
+KLOAD	:=	$(LOADDIR)/linux-4.9.tar.xz
 BLOAD	:=	$(LOADDIR)/dbench-4.0.tar.gz
 LOADS	:=	$(KLOAD) $(BLOAD)
 
 runit:
-	[ -d ./run ] || mkdir run
-	python rteval/rteval.py -D -L -v --workdir=./run --loaddir=./loadsource --duration=$(D) -f ./rteval/rteval.conf -i ./rteval
+	[ -d $(HERE)/run ] || mkdir run
+	python rteval-cmd -D -L -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -f $(HERE)/rteval.conf -i $(HERE)/rteval $(EXTRA)
 
 load:
 	[ -d ./run ] || mkdir run
-	python rteval/rteval.py --onlyload -D -L -v --workdir=./run --loaddir=./loadsource -f ./rteval/rteval.conf -i ./rteval
+	python rteval-cmd --onlyload -D -L -v --workdir=./run --loaddir=$(HERE)/loadsource -f $(HERE)/rteval/rteval.conf -i $(HERE)/rteval
+
 sysreport:
-	python rteval/rteval.py -D -v --workdir=./run --loaddir=./loadsource --duration=$(D) -i ./rteval --sysreport
+	python rteval-cmd -D -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -i $(HERE)/rteval --sysreport
 
 clean:
+	[ -f $(XMLRPCDIR)/Makefile ] && make -C $(XMLRPCDIR) clean || echo -n
 	rm -f *~ rteval/*~ rteval/*.py[co] *.tar.bz2 *.tar.gz doc/*~ server/rteval-xmlrpc-*.tar.gz
 
 realclean: clean
 	[ -f $(XMLRPCDIR)/Makefile ] && make -C $(XMLRPCDIR) maintainer-clean || echo -n
-	rm -rf run tarball rpm
+	rm -rf run rpm
 
 install: install_loads install_rteval
 
@@ -63,14 +46,6 @@ install_rteval: installdirs
 	else \
 		python setup.py install --root=$(DESTDIR); \
 	fi
-	install -m 644 rteval/rteval_text.xsl $(DATADIR)/rteval
-	install -m 644 rteval/rteval_dmi.xsl $(DATADIR)/rteval
-	install -m 644 rteval/rteval_histogram_raw.xsl $(DATADIR)/rteval
-	install -m 644 rteval/rteval.conf $(CONFDIR)
-	install -m 644 doc/rteval.8 $(MANDIR)/man8/
-	gzip -f $(MANDIR)/man8/rteval.8
-	chmod 755 $(PYLIB)/rteval/rteval.py
-#	ln -s $(PYLIB)/rteval/rteval.py $(DESTDIR)/usr/bin/rteval;
 
 install_loads:	$(LOADS)
 	[ -d $(DATADIR)/rteval/loadsource ] || mkdir -p $(DATADIR)/rteval/loadsource
@@ -92,14 +67,12 @@ uninstall:
 	rm -rf $(PYLIB)/rteval
 	rm -rf $(DATADIR)/rteval
 
-tarfile:
-	rm -rf tarball && mkdir -p tarball/rteval-$(VERSION)/rteval tarball/rteval-$(VERSION)/server tarball/rteval-$(VERSION)/sql
-	cp $(PYSRC) tarball/rteval-$(VERSION)/rteval
-	cp $(XSLSRC) tarball/rteval-$(VERSION)/rteval
-	cp $(CONFSRC) tarball/rteval-$(VERSION)/rteval
-	cp -r doc/ tarball/rteval-$(VERSION)
-	cp Makefile setup.py rteval.spec COPYING tarball/rteval-$(VERSION)
-	tar -C tarball -cjvf rteval-$(VERSION).tar.bz2 rteval-$(VERSION)
+tarfile: rteval-$(VERSION).tar.bz2
+
+rteval-$(VERSION).tar.bz2:
+	python setup.py sdist --formats=bztar --owner root --group root
+	mv dist/rteval-$(VERSION).tar.bz2 .
+	rmdir dist
 
 rteval-xmlrpc-$(XMLRPCVER).tar.gz :
 	cd $(XMLRPCDIR) ;             \
@@ -112,19 +85,30 @@ rpm_prep:
 	rm -rf rpm
 	mkdir -p rpm/{BUILD,RPMS,SRPMS,SOURCES,SPECS}
 
-rpms rpm: rpm_prep rtevalrpm loadrpm xmlrpcrpm
+rpms rpm: rpm_prep rtevalrpm loadrpm
 
-rtevalrpm: tarfile
-	cp rteval-$(VERSION).tar.bz2 rpm/SOURCES
+rtevalrpm: rteval-$(VERSION).tar.bz2
+	cp $^ rpm/SOURCES
 	cp rteval.spec rpm/SPECS
 	rpmbuild -ba --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval.spec
+
+rtevalsrpm: rteval-$(VERSION).tar.bz2
+	cp $^ rpm/SOURCES
+	cp rteval.spec rpm/SPECS
+	rpmbuild -bs --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval.spec
+
 
 xmlrpcrpm: rteval-xmlrpc-$(XMLRPCVER).tar.gz
 	cp rteval-xmlrpc-$(XMLRPCVER).tar.gz rpm/SOURCES/
 	cp server/rteval-parser.spec rpm/SPECS/
 	rpmbuild -ba --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval-parser.spec
 
-loadrpm: 
+xmlsrpm: rteval-xmlrpc-$(XMLRPCVER).tar.gz
+	cp rteval-xmlrpc-$(XMLRPCVER).tar.gz rpm/SOURCES/
+	cp server/rteval-parser.spec rpm/SPECS/
+	rpmbuild -bs --define "_topdir $(HERE)/rpm" rpm/SPECS/rteval-parser.spec
+
+loadrpm:
 	rm -rf rpm-loads
 	mkdir -p rpm-loads/{BUILD,RPMS,SRPMS,SOURCES,SPECS}
 	cp rteval-loads.spec rpm-loads/SPECS

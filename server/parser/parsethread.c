@@ -177,7 +177,7 @@ inline int check_filesize(threadData_t *thrdata, const char *fname) {
  *          STAT_RTERIDREG: Failed to get a new rterid value
  *          STAT_GENDB    : Failed to start an SQL transaction (BEGIN)
  *          STAT_RTEVRUNS : Failed to register the rteval run into rtevalruns or rtevalruns_details
- *          STAT_CYCLIC   : Failed to register the data into cyclic_statistics or cyclic_rawdata tables
+ *          STAT_MEASURE  : Failed to register the measurement data into tables their corresponding tables
  *          STAT_REPMOVE  : Failed to move the report file
  * @endcode
  */
@@ -212,15 +212,18 @@ inline int parse_report(threadData_t *thrdata, parseJob_t *job)
 			 "[Thread %i] Failed to register system (submid: %i, XML file: %s)",
 			 thrdata->id, job->submid, job->filename);
 		rc = STAT_SYSREG;
+		pthread_mutex_unlock(thrdata->mtx_sysreg);
 		goto exit;
 
 	}
+
 	rterid = db_get_new_rterid(thrdata->dbc);
 	if( rterid < 0 ) {
 		writelog(thrdata->dbc->log, LOG_ERR,
 			 "[Thread %i] Failed to register rteval run (submid: %i, XML file: %s)",
 			 thrdata->id, job->submid, job->filename);
 		rc = STAT_RTERIDREG;
+		pthread_mutex_unlock(thrdata->mtx_sysreg);
 		goto exit;
 	}
 	pthread_mutex_unlock(thrdata->mtx_sysreg);
@@ -251,12 +254,12 @@ inline int parse_report(threadData_t *thrdata, parseJob_t *job)
 		goto exit;
 	}
 
-	if( db_register_cyclictest(thrdata->dbc, thrdata->xslt, repxml, rterid) != 1 ) {
+	if( db_register_measurements(thrdata->dbc, thrdata->xslt, repxml, rterid) != 1 ) {
 		writelog(thrdata->dbc->log, LOG_ERR,
-			 "[Thread %i] Failed to register cyclictest data (submid: %i, XML file: %s)",
+			 "[Thread %i] Failed to register measurement data (submid: %i, XML file: %s)",
 			 thrdata->id, job->submid, job->filename);
 		db_rollback(thrdata->dbc);
-		rc = STAT_CYCLIC;
+		rc = STAT_MEASURE;
 		goto exit;
 	}
 

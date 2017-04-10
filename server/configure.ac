@@ -1,6 +1,6 @@
 #   configure.ac - autotools configuration file
 #
-#   Copyright 2009-2011   David Sommerseth <davids@redhat.com>
+#   Copyright 2009 - 2013   David Sommerseth <davids@redhat.com>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -12,9 +12,9 @@
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 #   For the avoidance of doubt the "preferred form" of this code is one which
 #   is in an open unpatent encumbered format. Where cryptographic key signing
@@ -22,11 +22,13 @@
 #   including keys needed to generate an equivalently functional executable
 #   are deemed to be part of the source code.
 #
+#
+#
 #   To create the ./configure script you need to run 'autoreconf --install'
 #
 
-AC_INIT([rteval-xmlrpc], [1.5], [davids@redhat.com])
-SQLSCHEMAVER=1.4
+AC_INIT([rteval-xmlrpc], [1.6], [davids@redhat.com])
+SQLSCHEMAVER=1.5
 AC_SUBST(SQLSCHEMAVER)
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -83,6 +85,7 @@ if test "$XSLTCFG" = :; then
 else
    AC_SUBST([LIBXSLT_INC], [$(xslt-config --cflags)])
    CPPFLAGS="$CPPFLAGS $LIBXSLT_INC"
+   LDFLAGS="$LDFLAGS -lexslt"
 fi
 AC_CHECK_HEADERS([libxslt/xsltInternals.h])
 AC_CHECK_HEADERS([libxslt/transform.h])
@@ -92,6 +95,7 @@ AC_CHECK_LIB([xslt], [xsltCleanupGlobals], [DUMMY=], AX_msgMISSINGFUNC())
 AC_CHECK_LIB([xslt], [xsltParseStylesheetFile], [DUMMY=], AX_msgMISSINGFUNC())
 AC_CHECK_LIB([xslt], [xsltApplyStylesheet], [DUMMY=], AX_msgMISSINGFUNC())
 AC_CHECK_LIB([xslt], [xsltFreeStylesheet], [DUMMY=], AX_msgMISSINGFUNC())
+AC_CHECK_LIB([exslt], [exsltRegisterAll], [DUMMY=], AX_msgMISSINGFUNC())
 
 # Check for libpq
 AC_CHECK_PROGS([PGSQLCFG], [pg_config], [:])
@@ -139,5 +143,7 @@ AC_CHECK_LIB([pthread], [pthread_mutex_unlock], [DUMMY=], AX_msgMISSINGFUNC())
 AC_CONFIG_SRCDIR([parser/rteval-parserd.c])
 AC_CONFIG_HEADERS([parser/config.h])
 AC_CONFIG_FILES([Makefile parser/Makefile])
+AC_SUBST([AM_CXXFLAGS], [$CFLAGS])
+AC_SUBST([AM_LDFLAGS], [$LDFLAGS])
 
 AC_OUTPUT
