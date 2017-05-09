@@ -11,6 +11,7 @@ tarball
 *.rpt
 *.xml
 *.o
+*.swp
 Makefile.in
 aclocal.m4
 config.h.in
