@@ -299,11 +299,14 @@ class Cyclictest(rtevalModulePrototype):
             fp.close()
 
         self.__cyclicoutput.seek(0)
-        self.__cyclicprocess = subprocess.Popen(self.__cmd,
+	try:
+            self.__cyclicprocess = subprocess.Popen(self.__cmd,
                                                 stdout=self.__cyclicoutput,
                                                 stderr=self.__nullfp,
                                                 stdin=self.__nullfp)
-        self.__started = True
+            self.__started = True
+	except OSError:
+            self.__started = False
 
 
     def WorkloadAlive(self):
@@ -314,7 +317,9 @@ class Cyclictest(rtevalModulePrototype):
 
 
     def _WorkloadCleanup(self):
-        while self.__cyclicprocess.poll() == None:
+        if not self.__started:
+            return
+        while self.__cyclicprocess.poll() is None:
             self._log(Log.DEBUG, "Sending SIGINT")
             os.kill(self.__cyclicprocess.pid, signal.SIGINT)
             time.sleep(2)
