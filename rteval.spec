@@ -19,7 +19,6 @@ Requires:	python-dmidecode >= 3.10
 Requires:	rt-tests >= 0.97
 Requires:	rteval-loads >= 1.4
 Requires:	rteval-common => %{version}-%{release}
-Requires:	trace-cmd
 Requires:	sysstat
 Requires:	bzip2
 Requires:       kernel-headers
