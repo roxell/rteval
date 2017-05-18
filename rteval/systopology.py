@@ -27,7 +27,7 @@ import os, sys
 import os.path
 import glob
 
-def _sysread(path, obj):
+def sysread(path, obj):
     fp = open(os.path.join(path,obj), "r")
     return fp.readline().strip()
 
@@ -117,7 +117,7 @@ class CpuList(object):
             return True
         path = os.path.join(CpuList.cpupath,'cpu%d' % n)
         if os.path.exists(path):
-            return _sysread(path, "online") == 1
+            return sysread(path, "online") == 1
         return False
 
 #
@@ -132,7 +132,7 @@ class NumaNode(object):
     def __init__(self, path):
         self.path = path
         self.nodeid = int(os.path.basename(path)[4:].strip())
-        self.cpus = CpuList(_sysread(self.path, "cpulist"))
+        self.cpus = CpuList(sysread(self.path, "cpulist"))
         self.getmeminfo()
 
     # function for the 'in' operator
