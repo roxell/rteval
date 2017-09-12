@@ -95,7 +95,8 @@ class SystemServices(object):
             self.__log(Log.DEBUG, "Using sysvinit to get services status")
             return self.__get_services_sysvinit()
         else:
-            raise RuntimeError, "Unknown init system (%s)" % self.__init
+            self.__init = 'container'
+            self.__log(Log.DEBUG, "Running inside container")
         return {}
 
 
@@ -133,4 +134,3 @@ def unit_test(rootdir):
 
 if __name__ == '__main__':
     sys.exit(unit_test(None))
-
