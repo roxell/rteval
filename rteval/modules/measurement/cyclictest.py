@@ -299,13 +299,13 @@ class Cyclictest(rtevalModulePrototype):
             fp.close()
 
         self.__cyclicoutput.seek(0)
-	try:
+        try:
             self.__cyclicprocess = subprocess.Popen(self.__cmd,
                                                 stdout=self.__cyclicoutput,
                                                 stderr=self.__nullfp,
                                                 stdin=self.__nullfp)
             self.__started = True
-	except OSError:
+        except OSError:
             self.__started = False
 
 
