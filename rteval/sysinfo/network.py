@@ -106,10 +106,10 @@ def unit_test(rootdir):
         doc.setRootElement(cfg)
         doc.saveFormatFileEnc('-', 'UTF-8', 1)
 
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

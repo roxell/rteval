@@ -31,9 +31,9 @@
 #   are deemed to be part of the source code.
 #
 import os, sys
-import ConfigParser
-from Log import Log
-from systopology import SysTopology
+import configparser
+from .Log import Log
+from .systopology import SysTopology
 
 def get_user_name():
     name = os.getenv('SUDO_USER')
@@ -111,7 +111,7 @@ class rtevalCfgSection(object):
         "Simple method for dumping config when object is used as a string"
         if len(self.__cfgdata) == 0:
             return "# empty"
-        return "\n".join(["%s: %s" % (k,v) for k,v in self.__cfgdata.items()]) + "\n"
+        return "\n".join(["%s: %s" % (k,v) for k,v in list(self.__cfgdata.items())]) + "\n"
 
 
     def __setattr__(self, key, val):
@@ -119,22 +119,22 @@ class rtevalCfgSection(object):
 
 
     def __getattr__(self, key):
-        if key in self.__cfgdata.keys():
+        if key in list(self.__cfgdata.keys()):
             return self.__cfgdata[key]
         return None
 
 
     def items(self):
-        return self.__cfgdata.items()
+        return list(self.__cfgdata.items())
 
 
     def __iter__(self):
         "Initialises the iterator loop"
-        self.__dict__['_rtevalCfgSection__iter_list'] = self.__cfgdata.keys()
+        self.__dict__['_rtevalCfgSection__iter_list'] = list(self.__cfgdata.keys())
         return self
 
 
-    def next(self):
+    def __next__(self):
         "Function used by the iterator"
 
         if not self.__dict__['_rtevalCfgSection__iter_list'] \
@@ -153,16 +153,16 @@ class rtevalCfgSection(object):
 
     def has_key(self, key):
         "has_key() wrapper for the configuration data"
-        return self.__cfgdata.has_key(key)
+        return key in self.__cfgdata
 
 
     def keys(self):
         "keys() wrapper for configuration data"
-        return self.__cfgdata.keys()
+        return list(self.__cfgdata.keys())
 
 
     def setdefault(self, key, defvalue):
-        if not self.__cfgdata.has_key(key):
+        if key not in self.__cfgdata:
             self.__cfgdata[key] = defvalue
         return self.__cfgdata[key]
 
@@ -171,7 +171,7 @@ class rtevalCfgSection(object):
         if type(newdict) is not dict:
             raise TypeError('update() method expects a dict as argument')
 
-        for key, val in newdict.iteritems():
+        for key, val in newdict.items():
             self.__cfgdata[key] = val
 
 
@@ -190,10 +190,10 @@ class rtevalConfig(object):
 
         # get our system topology info
         self.__systopology = SysTopology()
-        print("got system topology: %s" % self.__systopology)
+        print(("got system topology: %s" % self.__systopology))
 
         # Import the default config first
-        for sect, vals in default_config.items():
+        for sect, vals in list(default_config.items()):
             self.__update_section(sect, vals)
 
         # Set the runtime provided init variables
@@ -201,7 +201,7 @@ class rtevalConfig(object):
             if type(initvars) is not dict:
                 raise TypeError('initvars argument is not a dict variable')
 
-            for sect, vals in initvars.items():
+            for sect, vals in list(initvars.items()):
                 self.__update_section(sect, vals)
 
 
@@ -209,7 +209,7 @@ class rtevalConfig(object):
         if not section or not newvars:
             return
 
-        if not self.__config_data.has_key(section):
+        if section not in self.__config_data:
             self.__config_data[section] = rtevalCfgSection(newvars)
         else:
             self.__config_data[section].update(newvars)
@@ -218,7 +218,7 @@ class rtevalConfig(object):
     def __str__(self):
         "Simple method for dumping config when object is used as a string"
         ret = ""
-        for sect in self.__config_data.keys():
+        for sect in list(self.__config_data.keys()):
             ret += "[%s]\n%s\n" % (sect, str(self.__config_data[sect]))
         return ret
 
@@ -236,7 +236,7 @@ class rtevalConfig(object):
             if os.path.exists(p):
                 self.__info("found config file %s" % p)
                 return p
-        raise RuntimeError, "Unable to find configfile"
+        raise RuntimeError("Unable to find configfile")
 
 
     def Load(self, fname = None, append = False):
@@ -253,13 +253,13 @@ class rtevalConfig(object):
             return
 
         self.__info("reading config file %s" % cfgfile)
-        ini = ConfigParser.ConfigParser()
+        ini = configparser.ConfigParser()
         ini.optionxform = str
         ini.read(cfgfile)
 
         # wipe any previously read config info
         if not append:
-            for s in self.__config_data.keys():
+            for s in list(self.__config_data.keys()):
                 self.__config_data[s].wipe()
 
         # copy the section data into the __config_data dictionary
@@ -308,14 +308,14 @@ class rtevalConfig(object):
 
 
     def HasSection(self, section):
-        return self.__config_data.has_key(section)
+        return section in self.__config_data
 
 
     def GetSection(self, section):
         try:
             # Return a new object with config settings of a given section
             return self.__config_data[section]
-        except KeyError, err:
+        except KeyError as err:
             raise KeyError("The section '%s' does not exist in the config file" % section)
 
 
@@ -325,10 +325,10 @@ def unit_test(rootdir):
         l.SetLogVerbosity(Log.INFO)
         cfg = rtevalConfig(logger=l)
         cfg.Load(os.path.join(rootdir, 'rteval.conf'))
-        print cfg
+        print(cfg)
         return 0
-    except Exception, e:
-        print "** EXCEPTION %s", str(e)
+    except Exception as e:
+        print("** EXCEPTION %s", str(e))
         return 1
 
 

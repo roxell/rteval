@@ -10,9 +10,9 @@ PYTHONLIB = join(get_python_lib(standard_lib=1, prefix=''), 'site-packages')
 
 # Tiny hack to make rteval-cmd become a rteval when building/installing the package
 try:
-    os.mkdir('dist', 0755)
+    os.mkdir('dist', 0o755)
     distcreated = True
-except OSError, e:
+except OSError as e:
     if e.errno == 17:
         # If it already exists, ignore this error
         distcreated = False

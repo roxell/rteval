@@ -117,20 +117,20 @@ def unit_test(rootdir):
         cputop = CPUtopology()
         n = cputop._parse()
 
-        print " ---- XML Result ---- "
+        print(" ---- XML Result ---- ")
         x = libxml2.newDoc('1.0')
         x.setRootElement(n)
         x.saveFormatFileEnc('-','UTF-8',1)
 
-        print " ---- getCPUcores() / getCPUscokets() ---- "
-        print "CPU cores: %i (online: %i) - CPU sockets: %i" % (cputop.cpu_getCores(False),
+        print(" ---- getCPUcores() / getCPUscokets() ---- ")
+        print("CPU cores: %i (online: %i) - CPU sockets: %i" % (cputop.cpu_getCores(False),
                                                                 cputop.cpu_getCores(True),
-                                                                cputop.cpu_getSockets())
+                                                                cputop.cpu_getSockets()))
         return 0
-    except Exception, e:
+    except Exception as e:
         # import traceback
         # traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

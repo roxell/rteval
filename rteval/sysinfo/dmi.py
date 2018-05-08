@@ -56,7 +56,7 @@ def ProcessWarnings():
 
         # All other warnings will be printed
         if len(warnline) > 0:
-            print "** DMI WARNING ** %s" % warnline
+            print("** DMI WARNING ** %s" % warnline)
 
     dmidecode.clear_warnings()
 
@@ -91,7 +91,7 @@ class DMIinfo(object):
             xsltfile.close()
             return ret
 
-        raise RuntimeError, 'Could not locate XSLT template for DMI data (%s)' % (self.sharedir + '/' + fname)
+        raise RuntimeError('Could not locate XSLT template for DMI data (%s)' % (self.sharedir + '/' + fname))
 
 
     def MakeReport(self):
@@ -119,13 +119,13 @@ def unit_test(rootdir):
             self.__update_vars()
 
         def __update_vars(self):
-            for k in self.config.keys():
+            for k in list(self.config.keys()):
                 self.__dict__[k] = self.config[k]
 
     try:
         ProcessWarnings()
         if os.getuid() != 0:
-            print "** ERROR **  Must be root to run this unit_test()"
+            print("** ERROR **  Must be root to run this unit_test()")
             return 1
 
         log = Log()
@@ -137,8 +137,8 @@ def unit_test(rootdir):
         x.setRootElement(dx)
         x.saveFormatFileEnc("-", "UTF-8", 1)
         return 0
-    except Exception, e:
-        print "** EXCEPTION: %s" % str(e)
+    except Exception as e:
+        print("** EXCEPTION: %s" % str(e))
         return 1
 
 if __name__ == '__main__':

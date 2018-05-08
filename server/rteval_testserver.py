@@ -28,8 +28,8 @@
 import os
 import sys
 import signal
-from SimpleXMLRPCServer import SimpleXMLRPCServer
-from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 from optparse import OptionParser
 
 import xmlrpc_API1
@@ -55,7 +55,7 @@ class RTevald_config(object):
         self.__update_vars()
 
     def __update_vars(self):
-        for k in self.config.keys():
+        for k in list(self.config.keys()):
             self.__dict__[k] = self.config[k]
 
 
@@ -72,10 +72,10 @@ class RTevald():
             if dir is '':
                 continue
             if not os.path.exists(dir):
-                os.mkdir(dir, 0700)
+                os.mkdir(dir, 0o700)
             os.chdir(dir)
         if not os.path.exists('queue'):
-            os.mkdir('queue', 0700)
+            os.mkdir('queue', 0o700)
         os.chdir(startdir)
 
     def StartServer(self):

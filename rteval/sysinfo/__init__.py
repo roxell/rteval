@@ -26,14 +26,14 @@
 import sys, libxml2
 from rteval.Log import Log
 from glob import glob
-from kernel import KernelInfo
-from services import SystemServices
-from cputopology import CPUtopology
-from memory import MemoryInfo
-from osinfo import OSInfo
-from network import NetworkInfo
-from cmdline import cmdlineInfo
-import dmi
+from .kernel import KernelInfo
+from .services import SystemServices
+from .cputopology import CPUtopology
+from .memory import MemoryInfo
+from .osinfo import OSInfo
+from .network import NetworkInfo
+from .cmdline import cmdlineInfo
+from . import dmi
 
 class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology, MemoryInfo, OSInfo, NetworkInfo, cmdlineInfo):
     def __init__(self, config, logger=None):
@@ -78,29 +78,29 @@ if __name__ == "__main__":
     cfg.installdir = "."
     si = SystemInfo(cfg, logger=l)
 
-    print "\tRunning on %s" % si.get_base_os()
-    print "\tNUMA nodes: %d" % si.mem_get_numa_nodes()
-    print "\tMemory available: %03.2f %s\n" % si.mem_get_size()
+    print("\tRunning on %s" % si.get_base_os())
+    print("\tNUMA nodes: %d" % si.mem_get_numa_nodes())
+    print("\tMemory available: %03.2f %s\n" % si.mem_get_size())
 
-    print "\tServices: "
-    for (s, r) in si.services_get().items():
-        print "\t\t%s: %s" % (s, r)
+    print("\tServices: ")
+    for (s, r) in list(si.services_get().items()):
+        print("\t\t%s: %s" % (s, r))
     (curr, avail) = si.kernel_get_clocksources()
 
-    print "\tCurrent clocksource: %s" % curr
-    print "\tAvailable clocksources: %s" % avail
-    print "\tModules:"
+    print("\tCurrent clocksource: %s" % curr)
+    print("\tAvailable clocksources: %s" % avail)
+    print("\tModules:")
     for m in si.kernel_get_modules():
-        print "\t\t%s: %s" % (m['modname'], m['modstate'])
-    print "\tKernel threads:"
-    for (p, i) in si.kernel_get_kthreads().items():
-        print "\t\t%-30.30s pid: %-5.5s policy: %-7.7s prio: %-3.3s" % (
+        print("\t\t%s: %s" % (m['modname'], m['modstate']))
+    print("\tKernel threads:")
+    for (p, i) in list(si.kernel_get_kthreads().items()):
+        print("\t\t%-30.30s pid: %-5.5s policy: %-7.7s prio: %-3.3s" % (
             i["name"]+":", p, i["policy"], i["priority"]
-            )
+            ))
 
-    print "\n\tCPU topology info - cores: %i  online: %i  sockets: %i" % (
+    print("\n\tCPU topology info - cores: %i  online: %i  sockets: %i" % (
         si.cpu_getCores(False), si.cpu_getCores(True), si.cpu_getSockets()
-        )
+        ))
 
     xml = si.MakeReport()
     xml_d = libxml2.newDoc("1.0")

@@ -110,7 +110,7 @@ class Kcompile(CommandLineLoad):
 
     def _WorkloadSetup(self):
         # find our source tarball
-        if self._cfg.has_key('tarball'):
+        if 'tarball' in self._cfg:
             tarfile = os.path.join(self.srcdir, self._cfg.tarfile)
             if not os.path.exists(tarfile):
                 raise rtevalRuntimeError(self, " tarfile %s does not exist!" % tarfile)
@@ -176,7 +176,7 @@ class Kcompile(CommandLineLoad):
                                   stdin=null, stdout=out, stderr=err)
             if ret:
                 raise rtevalRuntimeError(self, "kcompile setup failed: %d" % ret)
-        except KeyboardInterrupt, m:
+        except KeyboardInterrupt as m:
             self._log(Log.DEBUG, "keyboard interrupt, aborting")
             return
         self._log(Log.DEBUG, "ready to run")
@@ -197,7 +197,7 @@ class Kcompile(CommandLineLoad):
         else:
             self.__outfd = self.__errfd = self.__nullfd
 
-        if self._cfg.has_key('cpulist') and self._cfg.cpulist:
+        if 'cpulist' in self._cfg and self._cfg.cpulist:
             cpulist = self._cfg.cpulist
             self.num_cpus = len(expand_cpulist(cpulist))
         else:
@@ -206,7 +206,7 @@ class Kcompile(CommandLineLoad):
     def _WorkloadTask(self):
         for n in self.topology:
             if not self.buildjobs[n]:
-                raise RuntimeError, "Build job not set up for node %d" % int(n)
+                raise RuntimeError("Build job not set up for node %d" % int(n))
             if self.buildjobs[n].jobid is None or self.buildjobs[n].jobid.poll() is not None:
                 self._log(Log.INFO, "Starting load on node %d" % n)
                 self.buildjobs[n].run(self.__nullfd, self.__outfd, self.__errfd)

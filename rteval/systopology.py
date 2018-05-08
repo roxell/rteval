@@ -99,7 +99,7 @@ class CpuList(object):
             if '-' in part:
                 a, b = part.split('-')
                 a, b = int(a), int(b)
-                result.extend(range(a, b + 1))
+                result.extend(list(range(a, b + 1)))
             else:
                 a = int(part)
                 result.append(a)
@@ -112,7 +112,7 @@ class CpuList(object):
     # check whether cpu n is online
     def isonline(self, n):
         if n not in self.cpulist:
-            raise RuntimeError, "invalid cpu number %d" % n
+            raise RuntimeError("invalid cpu number %d" % n)
         if n == 0:
             return True
         path = os.path.join(CpuList.cpupath,'cpu%d' % n)
@@ -183,11 +183,11 @@ class SysTopology(object):
         self.getinfo()
 
     def __len__(self):
-        return len(self.nodes.keys())
+        return len(list(self.nodes.keys()))
 
     def __str__(self):
-        s = "%d node system" % len(self.nodes.keys())
-        s += " (%d cores per node)" % (len(self.nodes[self.nodes.keys()[0]]))
+        s = "%d node system" % len(list(self.nodes.keys()))
+        s += " (%d cores per node)" % (len(self.nodes[list(self.nodes.keys())[0]]))
         return s
 
     # inplement the 'in' function
@@ -207,7 +207,7 @@ class SysTopology(object):
         return self
 
     # iterator function
-    def next(self):
+    def __next__(self):
         if self.current >= len(self.nodes):
             raise StopIteration
         n = self.nodes[self.current]
@@ -217,14 +217,14 @@ class SysTopology(object):
     def getinfo(self):
         nodes = glob.glob(os.path.join(SysTopology.nodepath, 'node[0-9]*'))
         if not nodes:
-            raise RuntimeError, "No valid nodes found in %s!" % SysTopology.nodepath
+            raise RuntimeError("No valid nodes found in %s!" % SysTopology.nodepath)
         nodes.sort()
         for n in nodes:
             node = int(os.path.basename(n)[4:])
             self.nodes[node] = NumaNode(n)
 
     def getnodes(self):
-        return self.nodes.keys()
+        return list(self.nodes.keys())
 
     def getcpus(self, node):
         return self.nodes[node]
@@ -235,12 +235,12 @@ if __name__ == "__main__":
 
     def unit_test():
         s = SysTopology()
-        print s
-        print "number of nodes: %d" % len(s)
+        print(s)
+        print("number of nodes: %d" % len(s))
         for n in s:
-            print "node[%d]: %s" % (n.nodeid, n)
-        print "system has numa node 0: %s" % (0 in s)
-        print "system has numa node 2: %s" % (2 in s)
-        print "system has numa node 24: %s" % (24 in s)
+            print("node[%d]: %s" % (n.nodeid, n))
+        print("system has numa node 0: %s" % (0 in s))
+        print("system has numa node 2: %s" % (2 in s))
+        print("system has numa node 24: %s" % (24 in s))
 
     unit_test()

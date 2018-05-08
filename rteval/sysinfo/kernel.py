@@ -73,7 +73,7 @@ class KernelInfo(object):
                                 "modstate": mod[4]})
                 line = fp.readline()
             fp.close()
-        except Exception, err:
+        except Exception as err:
             raise err
         return modlist
 
@@ -82,7 +82,7 @@ class KernelInfo(object):
         '''get the available and curent clocksources for this kernel'''
         path = '/sys/devices/system/clocksource/clocksource0'
         if not os.path.exists(path):
-            raise RuntimeError, "Can't find clocksource path in /sys"
+            raise RuntimeError("Can't find clocksource path in /sys")
         f = open (os.path.join (path, "current_clocksource"))
         current_clocksource = f.readline().strip()
         f = open (os.path.join (path, "available_clocksource"))
@@ -131,7 +131,7 @@ class KernelInfo(object):
         rep_n.addChild(kthreads_n)
 
         kthreads = self.kernel_get_kthreads()
-        keys = kthreads.keys()
+        keys = list(kthreads.keys())
         if len(keys):
             keys.sort()
             for pid in keys:
@@ -161,10 +161,10 @@ def unit_test(rootdir):
         xml_d.setRootElement(ki_xml)
         xml_d.saveFormatFileEnc("-", "UTF-8", 1)
 
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

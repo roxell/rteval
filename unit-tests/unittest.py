@@ -46,12 +46,12 @@ class UnitTest(object):
 
             try:
                 impmod = __import__(mod)
-                print "** Imported %s/%s" % (directory, mod)
+                print("** Imported %s/%s" % (directory, mod))
                 self.imported_mods.append({'name': '%s/%s' %(directory, mod),
                                            'module':  impmod})
                 self.mod_impcount += 1
-            except ImportError, e:
-                print "!! ** ERROR ** Failed to import %s/%s (Exception: %s)" % (directory, mod, str(e))
+            except ImportError as e:
+                print("!! ** ERROR ** Failed to import %s/%s (Exception: %s)" % (directory, mod, str(e)))
                 self.mod_impfail += 1
 
         return True
@@ -65,45 +65,45 @@ class UnitTest(object):
                 # Check if the unit_test() function exists and is callable before trying
                 # to run the unit test
                 if callable(m['module'].unit_test):
-                    print
-                    print 78 * '-'
-                    print "** Running unit test for: %s" % m['name']
-                    print 78 * '.'
+                    print()
+                    print(78 * '-')
+                    print("** Running unit test for: %s" % m['name'])
+                    print(78 * '.')
                     res = m['module'].unit_test(self.rootdir)
-                    print 78 * '.'
+                    print(78 * '.')
                     if res == 0:
-                        print "** Result of %s: PASS" % m['name']
+                        print("** Result of %s: PASS" % m['name'])
                         self.mod_testpass += 1
                     else:
-                        print "** Result of %s: FAILED (return code: %s)" % (m['name'], str(res))
+                        print("** Result of %s: FAILED (return code: %s)" % (m['name'], str(res)))
                         self.mod_testfail += 1
-                    print 78 * '='
+                    print(78 * '=')
                 else:
                     self.mod_testmiss += 1
-                    print "!!! ** ERROR **  Could not run %s::unit_test()" % m['name']
+                    print("!!! ** ERROR **  Could not run %s::unit_test()" % m['name'])
             except AttributeError:
                 self.mod_testmiss += 1
-                print "!!! ** ERROR **  No %s::unit_test() method found" % m['name']
+                print("!!! ** ERROR **  No %s::unit_test() method found" % m['name'])
 
 
     def PrintTestSummary(self):
         "Prints a result summary of all the tests"
-        print
-        print " --------------------"
-        print "  ** TEST SUMMARY ** "
-        print " --------------------"
-        print
-        print "  - Modules:"
-        print "      Declared for test:      %i" % (self.mod_impcount + self.mod_impfail)
-        print "      Successfully imported:  %i" % self.mod_impcount
-        print "      Failed import:          %i" % self.mod_impfail
-        print
-        print "  - Tests:"
-        print "      Tests scheduled:        %i" % (self.mod_testpass + self.mod_testfail + self.mod_testmiss)
-        print "      Sucessfully tests:      %i" % self.mod_testpass
-        print "      Failed tests:           %i" % self.mod_testfail
-        print "      Missing unit_test()     %i" % self.mod_testmiss
-        print
+        print()
+        print(" --------------------")
+        print("  ** TEST SUMMARY ** ")
+        print(" --------------------")
+        print()
+        print("  - Modules:")
+        print("      Declared for test:      %i" % (self.mod_impcount + self.mod_impfail))
+        print("      Successfully imported:  %i" % self.mod_impcount)
+        print("      Failed import:          %i" % self.mod_impfail)
+        print()
+        print("  - Tests:")
+        print("      Tests scheduled:        %i" % (self.mod_testpass + self.mod_testfail + self.mod_testmiss))
+        print("      Sucessfully tests:      %i" % self.mod_testpass)
+        print("      Failed tests:           %i" % self.mod_testfail)
+        print("      Missing unit_test()     %i" % self.mod_testmiss)
+        print()
 
 
 if __name__ == '__main__':
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # - use the first occurence of the 'v7' subdir as the root dirq
     srcrootdir_ar = os.getcwd().split('/')
     rootdir = '/'.join(srcrootdir_ar[0:srcrootdir_ar.index('rteval')+1])
-    print "** Source root dir: %s" % rootdir
+    print("** Source root dir: %s" % rootdir)
 
     # Prepare the unit tester
     tests = UnitTest(rootdir)

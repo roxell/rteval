@@ -48,12 +48,12 @@ class MemoryInfo(object):
             if l.startswith('MemTotal:'):
                 parts = l.split()
                 if parts[2].lower() != 'kb':
-                    raise RuntimeError, "Units changed from kB! (%s)" % parts[2]
+                    raise RuntimeError("Units changed from kB! (%s)" % parts[2])
                 rawsize = int(parts[1])
                 f.close()
                 break
         if rawsize == 0:
-            raise RuntimeError, "can't find memtotal in /proc/meminfo!"
+            raise RuntimeError("can't find memtotal in /proc/meminfo!")
 
         # Get a more readable result
         # Note that this depends on  /proc/meminfo starting in Kb
@@ -87,12 +87,12 @@ def unit_test(rootdir):
     import sys
     try:
         mi = MemoryInfo()
-        print "Numa nodes: %i" % mi.mem_get_numa_nodes()
-        print "Memory: %i %s" % mi.mem_get_size()
-    except Exception, e:
+        print("Numa nodes: %i" % mi.mem_get_numa_nodes())
+        print("Memory: %i %s" % mi.mem_get_size())
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

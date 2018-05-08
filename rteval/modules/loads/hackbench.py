@@ -128,7 +128,7 @@ class Hackbench(CommandLineLoad):
                              stderr=self.__err)
         if not p:
             self._log(Log.DEBUG, "hackbench failed to start on node %s" % node)
-            raise RuntimeError, "hackbench failed to start on node %s" % node
+            raise RuntimeError("hackbench failed to start on node %s" % node)
         return p
 
     def _WorkloadTask(self):
@@ -147,7 +147,7 @@ class Hackbench(CommandLineLoad):
                 if self.tasks[n].poll() is not None:
                     self.tasks[n].wait()
                     self.tasks[n] = self.__starton(n)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.ENOMEM:
                     raise e
                 # Exit gracefully without a traceback for out-of-memory errors
@@ -166,7 +166,7 @@ class Hackbench(CommandLineLoad):
             return
 
         for node in self.nodes:
-            if self.tasks.has_key(node) and self.tasks[node].poll() is None:
+            if node in self.tasks and self.tasks[node].poll() is None:
                 self._log(Log.INFO, "cleaning up hackbench on node %s" % node)
                 self.tasks[node].send_signal(SIGKILL)
                 if self.tasks[node].poll() == None:

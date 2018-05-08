@@ -49,7 +49,7 @@ class SystemServices(object):
                 servicesdir = sdir
                 break
         if not servicesdir:
-            raise RuntimeError, "No services dir (init.d) found on your system"
+            raise RuntimeError("No services dir (init.d) found on your system")
         self.__log(Log.DEBUG, "Services located in %s, going through each service file to check status" % servicesdir)
         ret_services = {}
         for service in glob.glob(os.path.join(servicesdir, '*')):
@@ -127,8 +127,8 @@ def unit_test(rootdir):
         xml_d.saveFormatFileEnc("-", "UTF-8", 1)
 
         return 0
-    except Exception, e:
-        print "** EXCEPTION: %s" % str(e)
+    except Exception as e:
+        print("** EXCEPTION: %s" % str(e))
         return 1
 
 

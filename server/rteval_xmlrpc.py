@@ -27,7 +27,7 @@
 
 import types
 from mod_python import apache
-from xmlrpclib import dumps, loads, Fault
+from xmlrpc.client import dumps, loads, Fault
 from xmlrpc_API1 import XMLRPC_API1
 from rteval.rtevalConfig import rtevalConfig
 
@@ -54,7 +54,7 @@ def Dispatch(req, method, args):
     result = xmlrpc.Dispatch(method, args)
 
     # Send the result
-    if type(result) == types.TupleType:
+    if type(result) == tuple:
         req.write(dumps(result, None, methodresponse=1))
     else:
         req.write(dumps((result,), None, methodresponse=1))
