@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 #
 # Copyright (C) 2015 Clark Williams <clark.williams@gmail.com>
 # Copyright (C) 2015 Red Hat, Inc.
