@@ -28,7 +28,7 @@ from dist import RTEVAL_VERSION
 
 # Compress the man page, so distutil will only care for the compressed file
 mangz = gzip.GzipFile('dist/rteval.8.gz', 'w', 9)
-man = open('doc/rteval.8', 'r')
+man = open('doc/rteval.8', 'rb')
 mangz.writelines(man)
 man.close()
 mangz.close()
