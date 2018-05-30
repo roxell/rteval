@@ -79,7 +79,8 @@ mean, variance and standard deviation) and a report is generated.
 os.unlink('dist/rteval')
 os.unlink('dist/rteval.8.gz')
 os.unlink('dist/__init__.py')
-os.unlink('dist/__init__.pyc')
+# TODO FIX THIS, or at least find out why it was there
+#os.unlink('dist/__init__.pyc')
 
 if distcreated:
     try:
