@@ -29,7 +29,6 @@ import libxml2
 import lxml.etree
 import codecs
 import re
-#from string import maketrans
 
 
 def convert_libxml2_to_lxml_doc(inxml):
@@ -51,7 +50,7 @@ def convert_lxml_to_libxml2_nodes(inlxml):
     if not isinstance(inlxml,lxml.etree._Element) and not isinstance(inlxml, lxml.etree._XSLTResultTree):
         raise TypeError('Function requires an lxml.etree object as input')
 
-    return libxml2.parseDoc(lxml.etree.tostring(inlxml)).getRootElement()
+    return libxml2.parseDoc(bytes.decode(lxml.etree.tostring(inlxml))).getRootElement()
 
 
 
@@ -74,13 +73,13 @@ class XMLOut(object):
             self.xmldoc.freeDoc()
 
     def __setup_tag_trans(self):
-        t = maketrans('', '')
-        t = t.replace(' ', '_')
-        t = t.replace('\t', '_')
-        t = t.replace('(', '_')
-        t = t.replace(')', '_')
-        t = t.replace(':', '-')
+        t = str.maketrans('', '')
         return t
+#        t = t.replace(' ', '_')
+#        t = t.replace('\t', '_')
+#        t = t.replace('(', '_')
+#        t = t.replace(')', '_')
+#        t = t.replace(':', '-')
 
     def __fixtag(self, tagname):
         if not isinstance(tagname, str):
@@ -99,9 +98,7 @@ class XMLOut(object):
             rx = re.compile(" ")
             val = rx.sub("_", val)
 
-        # libxml2 uses UTF-8 internally and must have
-        # all input as UTF-8.
-        return val.encode('utf-8')
+        return val
 
 
     def __add_attributes(self, node, attr):
@@ -223,7 +220,7 @@ class XMLOut(object):
             resdoc = parser(xmldoc)
 
             #  Write the file with the requested output encoding
-            dstfile.write(str(resdoc).encode(self.encoding))
+            dstfile.write(bytes.decode(str(resdoc).encode(self.encoding)))
 
             if dstfile != sys.stdout:
                 dstfile.close()

@@ -50,9 +50,11 @@ class KernelInfo(object):
         for p in c.stdout:
             v = p.strip().split()
             kcmd = v.pop(0)
+            kcmd = bytes.decode(kcmd)
             try:
                 if int(v[0]) > 0 and kcmd.startswith('[') and kcmd.endswith(']'):
-                    ret_kthreads[v[0]] = {'policy' : policies[v[1]],
+
+                    ret_kthreads[v[0]] = {'policy' : policies[bytes.decode(v[1])],
                                           'priority' : v[2], 'name' : v[3] }
             except ValueError:
                 pass    # Ignore lines which don't have a number in the first row
@@ -137,9 +139,9 @@ class KernelInfo(object):
             for pid in keys:
                 kthri_n = libxml2.newNode("thread")
                 kthreads_n.addChild(kthri_n)
-                kthri_n.addContent(kthreads[pid]["name"])
+                kthri_n.addContent(bytes.decode(kthreads[pid]["name"]))
                 kthri_n.newProp("policy", kthreads[pid]["policy"])
-                kthri_n.newProp("priority", kthreads[pid]["priority"])
+                kthri_n.newProp("priority", bytes.decode(kthreads[pid]["priority"]))
 
         return rep_n
 

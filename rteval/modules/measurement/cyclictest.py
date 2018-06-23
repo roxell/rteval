@@ -228,7 +228,7 @@ class Cyclictest(rtevalModulePrototype):
     def __getmode(self):
         if self.__numanodes > 1:
             self._log(Log.DEBUG, "running in NUMA mode (%d nodes)" % self.__numanodes)
-            return '--numa'
+            return ''
         self._log(Log.DEBUG, "running in SMP mode")
         return '--smp'
 
@@ -278,7 +278,7 @@ class Cyclictest(rtevalModulePrototype):
             self.__cmd.append("--notrace")
 
         # Buffer for cyclictest data written to stdout
-        self.__cyclicoutput = tempfile.SpooledTemporaryFile(mode='rw+b')
+        self.__cyclicoutput = tempfile.SpooledTemporaryFile(mode='w+b')
 
 
     def _WorkloadTask(self):
@@ -327,6 +327,7 @@ class Cyclictest(rtevalModulePrototype):
         # now parse the histogram output
         self.__cyclicoutput.seek(0)
         for line in self.__cyclicoutput:
+            line = bytes.decode(line)
             if line.startswith('#'):
                 # Catch if cyclictest stopped due to a breaktrace
                 if line.startswith('# Break value: '):

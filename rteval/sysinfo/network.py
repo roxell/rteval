@@ -53,7 +53,7 @@ class NetworkInfo(object):
         if hasattr(ethtool, 'get_interfaces_info'):
             # Using the newer python-ethtool API (version >= 0.4)
             for dev in ethtool.get_interfaces_info(ethtool.get_devices()):
-                if cmp(dev.device,'lo') == 0:
+                if dev.device == 'lo':
                     continue
 
                 intf_n = libxml2.newNode('interface')
