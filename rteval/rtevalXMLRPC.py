@@ -24,8 +24,8 @@
 #   are deemed to be part of the source code.
 #
 
-import socket, time
-import rtevalclient, xmlrpc.client
+import socket, time, xmlrpc.client
+from .rtevalclient import rtevalclient
 from .Log import Log
 
 class rtevalXMLRPC(object):
