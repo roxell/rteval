@@ -116,11 +116,11 @@ class RtEval(rtevalReport):
 
     def __show_remaining_time(self, remaining):
         r = int(remaining)
-        days = r / 86400
+        days = int(r / 86400)
         if days: r = r - (days * 86400)
-        hours = r / 3600
+        hours = int(r / 3600)
         if hours: r = r - (hours * 3600)
-        minutes = r / 60
+        minutes = int(r / 60)
         if minutes: r = r - (minutes * 60)
         print("rteval time remaining: %d days, %d hours, %d minutes, %d seconds" % (days, hours, minutes, r))
 
