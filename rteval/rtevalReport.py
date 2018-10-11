@@ -48,9 +48,9 @@ class rtevalReport(object):
 
         duration = datetime.now() - measure_start
         seconds = duration.seconds
-        hours = seconds / 3600
+        hours = int(seconds / 3600)
         if hours: seconds -= (hours * 3600)
-        minutes = seconds / 60
+        minutes = int(seconds / 60)
         if minutes: seconds -= (minutes * 60)
 
         # Start new XML report
