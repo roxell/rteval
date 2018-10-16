@@ -129,12 +129,12 @@ def parse_options(cfg, parser, cmdargs):
     parser.add_option("-D", '--debug', dest='rteval___debugging',
                       action='store_true', default=rtevcfg.debugging,
                       help='turn on debug prints (default: %default)')
-    parser.add_option("-X", '--xmlrpc-submit', dest='rteval___xmlrpc',
-                      action='store', default=rtevcfg.xmlrpc, metavar='HOST',
-                      help='Hostname to XML-RPC server to submit reports')
-    parser.add_option("-P", "--xmlrpc-no-abort", dest="rteval___xmlrpc_noabort",
-                      action='store_true', default=False,
-                      help="Do not abort if XML-RPC server do not respond to ping request");
+    #parser.add_option("-X", '--xmlrpc-submit', dest='rteval___xmlrpc',
+    #                  action='store', default=rtevcfg.xmlrpc, metavar='HOST',
+    #                  help='Hostname to XML-RPC server to submit reports')
+    #parser.add_option("-P", "--xmlrpc-no-abort", dest="rteval___xmlrpc_noabort",
+    #                  action='store_true', default=False,
+    #                  help="Do not abort if XML-RPC server do not respond to ping request");
     parser.add_option("-Z", '--summarize', dest='rteval___summarize',
                       action='store_true', default=False,
                       help='summarize an already existing XML report')
