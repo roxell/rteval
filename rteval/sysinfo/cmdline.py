@@ -13,7 +13,7 @@ class cmdlineInfo:
         cmdlineList = []
         fp = open('/proc/cmdline', 'r')
         line = fp.readline()
-        self.__log(Log.DEBUG, "/proc/mcdline\n")
+        self.__log(Log.DEBUG, "/proc/cmdline\n")
         fp.close()
         return line
 
