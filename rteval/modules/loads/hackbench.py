@@ -138,7 +138,12 @@ class Hackbench(CommandLineLoad):
         # just do this once
         if not self.started:
             for n in self.nodes:
-                self.tasks[n] = self.__starton(n)
+                try:
+                    self.tasks[n] = self.__starton(n)
+                except OSError, e:
+                    self._log(Log.DEBUG, "Error trying to launch hackbench")
+                    raise e
+
             self.started = True
             return
 
@@ -148,12 +153,9 @@ class Hackbench(CommandLineLoad):
                     self.tasks[n].wait()
                     self.tasks[n] = self.__starton(n)
             except OSError, e:
-                if e.errno != errno.ENOMEM:
-                    raise e
                 # Exit gracefully without a traceback for out-of-memory errors
-                self._log(Log.DEBUG, "ERROR, ENOMEM while trying to launch hackbench")
-                print("out-of-memory trying to launch hackbench, exiting")
-                sys.exit(-1)
+                self._log(Log.DEBUG, "ERROR, trying to launch hackbench")
+                raise e
 
 
     def WorkloadAlive(self):

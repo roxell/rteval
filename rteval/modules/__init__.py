@@ -185,7 +185,14 @@ class rtevalModulePrototype(threading.Thread):
             self.__timestamps["runloop_start"] = datetime.now()
             while not self.shouldStop():
                 # Run the workload
-                self._WorkloadTask()
+                try:
+                    self._WorkloadTask()
+                except:
+                    self._log(Log.DEBUG, "failed to start workload")
+                    self._donotrun = True
+                    self.setStop()
+                    self._setRuntimeError(True)
+                    raise RuntimeError()
 
                 if self.shouldStop():
                     break
