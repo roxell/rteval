@@ -45,6 +45,7 @@ class CpuList(object):
             self.cpulist = cpulist
         elif type(cpulist) is str:
             self.cpulist = self.__expand_cpulist(cpulist)
+        self.cpulist = self.online_cpulist(self.cpulist)
         self.cpulist.sort()
 
     def __str__(self):
@@ -56,6 +57,10 @@ class CpuList(object):
     def __len__(self):
         return len(self.cpulist)
 
+    def online_file_exists(self):
+        if os.path.exists('/sys/devices/system/cpu/cpu1/online'):
+            return True
+        return False
 
     # return the index of the last element of a sequence
     # that steps by one
@@ -67,7 +72,6 @@ class CpuList(object):
             if int(cpulist[idx+1]) != (int(cpulist[idx])+1):
                 return idx
         return lim - 1
-
 
     #
     # collapse a list of cpu numbers into a string range
@@ -110,15 +114,30 @@ class CpuList(object):
         return self.cpulist
 
     # check whether cpu n is online
-    def isonline(self, n):
+    def is_online(self, n):
         if n not in self.cpulist:
             raise RuntimeError("invalid cpu number %d" % n)
         if n == 0:
             return True
         path = os.path.join(CpuList.cpupath,'cpu%d' % n)
-        if os.path.exists(path):
-            return sysread(path, "online") == 1
-        return False
+        # Some hardware doesn't allow cpu0 to be turned off
+        if not os.path.exists(path + '/online') and n == 0:
+            return True
+        else:
+            return sysread(path, "online") == "1"
+
+    # Given a cpulist, return a cpulist of online cpus
+    def online_cpulist(self, cpulist):
+        # This only works if the sys online files exist
+        if not self.online_file_exists():
+            return cpulist
+        newlist = []
+        for cpu in cpulist:
+            if not self.online_file_exists() and cpu == '0':
+                newlist.append(cpu)
+            elif self.is_online(int(cpu)):
+                newlist.append(cpu)
+        return newlist
 
 #
 # class to abstract access to NUMA nodes in /sys filesystem
