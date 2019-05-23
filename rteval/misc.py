@@ -36,7 +36,24 @@ def expand_cpulist(cpulist):
     return [ str(i) for i in list(set(result)) ]
 
 def online_cpus():
-    return [ str(c.replace('/sys/devices/system/cpu/cpu', ''))  for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*') ]
+    online_cpus = []
+    # Check for the online file with cpu1 since cpu0 can't always be offlined
+    if os.path.exists('/sys/devices/system/cpu/cpu1/online'):
+        for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
+            num = str(c.replace('/sys/devices/system/cpu/cpu',''))
+            # On some machine you can't turn off cpu0
+            if not os.path.exists(c + '/online') and num == "0":
+                online_cpus.append(num)
+            else:
+                with open(c + '/online') as f:
+                    is_online = f.read().rstrip('\n')
+                if is_online == "1":
+                    online_cpus.append(num)
+    else: # use the old heuristic
+        for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
+            num = str(c.replace('/sys/devices/system/cpu/cpu',''))
+            online_cpus.append(num)
+    return online_cpus
 
 def invert_cpulist(cpulist):
     return [ c for c in online_cpus() if c not in cpulist]
