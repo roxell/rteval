@@ -246,7 +246,7 @@ class SysTopology(object):
         return list(self.nodes.keys())
 
     def getcpus(self, node):
-        return self.nodes[node]
+        return self.nodes[node].getcpulist()
 
 
 
