@@ -30,6 +30,7 @@ from signal import SIGKILL
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
 from rteval.misc import expand_cpulist
+from rteval.systopology import SysTopology
 
 class Hackbench(CommandLineLoad):
     def __init__(self, config, logger):
@@ -53,24 +54,23 @@ class Hackbench(CommandLineLoad):
             mult = 0
             self._donotrun = True
 
-        # figure out how many nodes we have
-        self.nodes = [ n.split('/')[-1][4:] for n in glob.glob('/sys/devices/system/node/node*') ]
-
+        sysTop = SysTopology()
+        # get the number of nodes
+        self.nodes = sysTop.getnodes()
 
         # get the cpus for each node
         self.cpus = {}
         biggest = 0
-        for n in self.nodes:
-            self.cpus[n] = [ int(c.split('/')[-1][3:]) for c in glob.glob('/sys/devices/system/node/node%s/cpu[0-9]*' % n) ]
-            self.cpus[n].sort()
-
+        for n in sysTop:
+            self.cpus[n] = sysTop.getcpus(int(n))
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
                 self.cpus[n] = [ c for c in self.cpus[n] if c in expand_cpulist(self.cpulist) ]
 
             # track largest number of cpus used on a node
-            if len(self.cpus[n]) > biggest:
-                biggest = len(self.cpus[n])
+            node_biggest = len(sysTop.getcpus(int(n)))
+            if node_biggest > biggest:
+                biggest = node_biggest
 
         # setup jobs based on the number of cores available per node
         self.jobs = biggest * 3
