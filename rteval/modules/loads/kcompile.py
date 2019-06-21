@@ -112,6 +112,33 @@ class Kcompile(CommandLineLoad):
         CommandLineLoad.__init__(self, "kcompile", config, logger)
         self.logger = logger
 
+    def _extract_tarball(self):
+        if self.source == None:
+            raise rtevalRuntimeError(self, " no source tarball specified!")
+        self._log(Log.DEBUG, "unpacking kernel tarball")
+        tarargs = ['tar', '-C', self.builddir, '-x']
+        if self.source.endswith(".bz2"):
+            tarargs.append("-j")
+        elif self.source.endswith(".gz"):
+            tarargs.append("-z")
+        tarargs.append("-f")
+        tarargs.append(self.source)
+        try:
+            subprocess.call(tarargs)
+        except:
+            self._log(Log.DEBUG, "untar'ing kernel self.source failed!")
+            sys.exit(-1)
+
+    def _remove_build_dirs(self):
+        if not os.path.isdir(self.builddir):
+            return
+        self._log(Log.DEBUG, "removing kcompile directories in %s" % self.builddir)
+        null = os.open("/dev/null", os.O_RDWR)
+        cmd=["rm",  "-rf", os.path.join(self.builddir, "kernel*"), os.path.join(self.builddir, "node*")]
+        ret = subprocess.call(cmd,stdin=null, stdout=null, stderr=null)
+        if ret:
+            raise rtevalRuntimeError(self, "error removing builddir (%s) (ret=%d)" % (self.builddir, ret))
+
     def _WorkloadSetup(self):
         # find our source tarball
         if 'tarball' in self._cfg:
@@ -134,19 +161,7 @@ class Kcompile(CommandLineLoad):
                 kdir=d
                 break
         if kdir == None:
-            self._log(Log.DEBUG, "unpacking kernel tarball")
-            tarargs = ['tar', '-C', self.builddir, '-x']
-            if self.source.endswith(".bz2"):
-                tarargs.append("-j")
-            elif self.source.endswith(".gz"):
-                tarargs.append("-z")
-            tarargs.append("-f")
-            tarargs.append(self.source)
-            try:
-                subprocess.call(tarargs)
-            except:
-                self._log(Log.DEBUG, "untar'ing kernel self.source failed!")
-                sys.exit(-1)
+            self._extract_tarball()
             names = os.listdir(self.builddir)
             for d in names:
                 self._log(Log.DEBUG, "checking %s" % d)
@@ -194,10 +209,17 @@ class Kcompile(CommandLineLoad):
 
         # clean up any damage from previous runs
         try:
-            ret = subprocess.call(["make", "-C", self.mydir, "mrproper"],
-                                  stdin=null, stdout=out, stderr=err)
+            cmd = ["make", "-C", self.mydir, "mrproper"]
+            ret = subprocess.call(cmd, stdin=null, stdout=out, stderr=err)
             if ret:
-                raise rtevalRuntimeError(self, "kcompile setup failed: %d" % ret)
+                # if the above make failed, remove and reinstall the source tree
+                self._log(Log.DEBUG, "Invalid state in kernel build tree, reloading")
+                self._remove_build_dirs()
+                self._extract_tarball()
+                ret = subprocess.call(cmd, stdin=null, stdout=out, stderr=err)
+                if ret:
+                    # give up
+                    raise rtevalRuntimeError(self, "kcompile setup failed: %d" % ret)
         except KeyboardInterrupt as m:
             self._log(Log.DEBUG, "keyboard interrupt, aborting")
             return
