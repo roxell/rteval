@@ -224,15 +224,6 @@ class Cyclictest(rtevalModulePrototype):
         self.__cyclicoutput = None
         self.__breaktraceval = None
 
-
-    def __getmode(self):
-        if self.__numanodes > 1:
-            self._log(Log.DEBUG, "running in NUMA mode (%d nodes)" % self.__numanodes)
-            return '--numa'
-        self._log(Log.DEBUG, "running in SMP mode")
-        return '--smp'
-
-
     def __get_debugfs_mount(self):
         ret = None
         mounts = open('/proc/mounts')
@@ -267,7 +258,8 @@ class Cyclictest(rtevalModulePrototype):
             self.__cmd.append('-t%d' % self.__numcores)
             self.__cmd.append('-a%s' % self.__cpulist)
         else:
-            self.__cmd.append(self.__getmode())
+            self.__cmd.append('-t')
+            self.__cmd.append('-a')
 
         if self.__cfg.has_key('threads') and self.__cfg.threads:
             self.__cmd.append("-t%d" % int(self.__cfg.threads))
