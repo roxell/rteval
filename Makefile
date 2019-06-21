@@ -1,6 +1,11 @@
 HERE	:=	$(shell pwd)
+ifneq (, $(wildcard /usr/bin/python3))
+	PYTHON = python3
+else
+	PYTHON = python2
+endif
 PACKAGE :=	rteval
-VERSION :=      $(shell python -c "from rteval import RTEVAL_VERSION; print RTEVAL_VERSION")
+VERSION :=      $(shell $(PYTHON) -c "from rteval import RTEVAL_VERSION; print RTEVAL_VERSION")
 D	:=	10
 
 # XML-RPC related files
@@ -12,7 +17,7 @@ PREFIX  :=      /usr
 DATADIR	:=	$(DESTDIR)/$(PREFIX)/share
 CONFDIR	:=	$(DESTDIR)/etc
 MANDIR	:=	$(DESTDIR)/$(PREFIX)/share/man
-PYLIB	:= 	$(DESTDIR)$(shell python -c 'import distutils.sysconfig;  print distutils.sysconfig.get_python_lib()')
+PYLIB	:= 	$(DESTDIR)$(shell $(PYTHON) -c 'import distutils.sysconfig;  print distutils.sysconfig.get_python_lib()')
 LOADDIR	:=	loadsource
 
 KLOAD	:=	$(LOADDIR)/linux-5.1.tar.xz
@@ -21,14 +26,14 @@ LOADS	:=	$(KLOAD) $(BLOAD)
 
 runit:
 	[ -d $(HERE)/run ] || mkdir run
-	python rteval-cmd -D -L -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -f $(HERE)/rteval.conf -i $(HERE)/rteval $(EXTRA)
+	$(PYTHON) rteval-cmd -D -L -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -f $(HERE)/rteval.conf -i $(HERE)/rteval $(EXTRA)
 
 load:
 	[ -d ./run ] || mkdir run
-	python rteval-cmd --onlyload -D -L -v --workdir=./run --loaddir=$(HERE)/loadsource -f $(HERE)/rteval/rteval.conf -i $(HERE)/rteval
+	$(PYTHON) rteval-cmd --onlyload -D -L -v --workdir=./run --loaddir=$(HERE)/loadsource -f $(HERE)/rteval/rteval.conf -i $(HERE)/rteval
 
 sysreport:
-	python rteval-cmd -D -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -i $(HERE)/rteval --sysreport
+	$(PYTHON) rteval-cmd -D -v --workdir=$(HERE)/run --loaddir=$(HERE)/loadsource --duration=$(D) -i $(HERE)/rteval --sysreport
 
 clean:
 	[ -f $(XMLRPCDIR)/Makefile ] && make -C $(XMLRPCDIR) clean || echo -n
@@ -42,9 +47,9 @@ install: install_loads install_rteval
 
 install_rteval: installdirs
 	if [ "$(DESTDIR)" = "" ]; then \
-		python setup.py install; \
+		$(PYTHON) setup.py install; \
 	else \
-		python setup.py install --root=$(DESTDIR); \
+		$(PYTHON) setup.py install --root=$(DESTDIR); \
 	fi
 
 install_loads:	$(LOADS)
@@ -70,7 +75,7 @@ uninstall:
 tarfile: rteval-$(VERSION).tar.bz2
 
 rteval-$(VERSION).tar.bz2:
-	python setup.py sdist --formats=bztar --owner root --group root
+	$(PYTHON) setup.py sdist --formats=bztar --owner root --group root
 	mv dist/rteval-$(VERSION).tar.bz2 .
 	rmdir dist
 
