@@ -196,7 +196,11 @@ class RtEval(rtevalReport):
 
             # Unleash the loads and measurement threads
             report_interval = int(self.__rtevcfg.report_interval)
-            nthreads = with_loads and self._loadmods.Unleash() or None
+            if with_loads:
+                self._loadmods.Unleash()
+                nthreads = len(threading.enumerate())
+            else:
+                nthreads = None
             self.__logger.log(Log.INFO, "Waiting 30 seconds to let load modules settle down")
             time.sleep(30)
             measure_profile.Unleash()
