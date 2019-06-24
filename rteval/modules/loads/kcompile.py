@@ -208,6 +208,12 @@ class Kcompile(CommandLineLoad):
             if not self.buildjobs[n]:
                 raise RuntimeError("Build job not set up for node %d" % int(n))
             if self.buildjobs[n].jobid is None or self.buildjobs[n].jobid.poll() is not None:
+                # A jobs was started, but now it finished. Check return code.
+                # -2 is returned when user forced stop of execution (CTRL-C).
+                if self.buildjobs[n].jobid is not None:
+                    if self.buildjobs[n].jobid.returncode != 0 and self.buildjobs[n].jobid.returncode != -2:
+                        raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail"
+                                % self.buildjobs[n].jobid.returncode)
                 self._log(Log.INFO, "Starting load on node %d" % n)
                 self.buildjobs[n].run(self.__nullfd, self.__outfd, self.__errfd)
 
@@ -215,7 +221,12 @@ class Kcompile(CommandLineLoad):
         # if any of the jobs has stopped, return False
         for n in self.topology:
             if self.buildjobs[n].jobid.poll() is not None:
+                # Check return code (see above).
+                if self.buildjobs[n].jobid.returncode != 0 and self.buildjobs[n].jobid.returncode != -2:
+                    raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail"
+                            % self.buildjobs[n].jobid.returncode)
                 return False
+
         return True
 
 

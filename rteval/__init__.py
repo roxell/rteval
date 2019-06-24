@@ -244,7 +244,8 @@ class RtEval(rtevalReport):
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
         except RuntimeError as e:
-            raise RuntimeError("appeared during measurement: %s" % e)
+            if not stopsig_received:
+                raise RuntimeError("appeared during measurement: %s" % e)
 
         finally:
             # stop measurement threads
