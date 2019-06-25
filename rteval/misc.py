@@ -42,7 +42,10 @@ def invert_cpulist(cpulist):
     return [ c for c in online_cpus() if c not in cpulist]
 
 def compress_cpulist(cpulist):
-    return ",".join(cpulist)
+    if type(cpulist[0]) == int:
+        return ",".join(str(e) for e in cpulist)
+    else:
+        return ",".join(cpulist)
 
 def cpuinfo():
     core = -1
