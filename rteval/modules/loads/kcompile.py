@@ -29,7 +29,7 @@ from signal import SIGTERM
 from rteval.modules import rtevalRuntimeError
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
-from rteval.misc import expand_cpulist
+from rteval.misc import expand_cpulist,compress_cpulist
 from rteval.systopology import SysTopology
 
 kernel_prefix="linux-4.9"
@@ -37,7 +37,7 @@ kernel_prefix="linux-4.9"
 class KBuildJob(object):
     '''Class to manage a build job bound to a particular node'''
 
-    def __init__(self, node, kdir, logger=None):
+    def __init__(self, node, kdir, logger=None, cpulist=None):
         self.kdir = kdir
         self.jobid = None
         self.node = node
@@ -46,11 +46,14 @@ class KBuildJob(object):
         self.objdir = "%s/node%d" % (self.builddir, int(node))
         if not os.path.isdir(self.objdir):
             os.mkdir(self.objdir)
-        if os.path.exists('/usr/bin/numactl'):
+        if os.path.exists('/usr/bin/numactl') and not cpulist:
             self.binder = 'numactl --cpunodebind %d' % int(self.node)
         else:
-            self.binder = 'taskset -c %s' % str(self.node)
-        self.jobs = self.calc_jobs_per_cpu() * len(self.node)
+            self.binder = 'taskset -c %s' % compress_cpulist(cpulist)
+        if cpulist:
+            self.jobs = self.calc_jobs_per_cpu() * len(cpulist)
+        else:
+            self.jobs = self.calc_jobs_per_cpu() * len(self.node)
         self.log(Log.DEBUG, "node %d: jobs == %d" % (int(node), self.jobs))
         self.runcmd = "%s make O=%s -C %s -j%d bzImage modules" % (self.binder, self.objdir, self.kdir, self.jobs)
         self.cleancmd = "%s make O=%s -C %s clean allmodconfig" % (self.binder, self.objdir, self.kdir)
@@ -177,7 +180,7 @@ class Kcompile(CommandLineLoad):
 
         for n in self.nodes:
             self._log(Log.DEBUG, "Configuring build job for node %d" % int(n))
-            self.buildjobs[n] = KBuildJob(self.topology[n], self.mydir, self.logger)
+            self.buildjobs[n] = KBuildJob(self.topology[n], self.mydir, self.logger, self.cpus[n] if self.cpulist else None)
             self.args.append(str(self.buildjobs[n])+";")
 
 
