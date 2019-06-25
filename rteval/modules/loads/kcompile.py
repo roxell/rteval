@@ -105,6 +105,7 @@ class Kcompile(CommandLineLoad):
         self.buildjobs = {}
         self.config = config
         self.topology = SysTopology()
+        self.cpulist = config.cpulist
         CommandLineLoad.__init__(self, "kcompile", config, logger)
         self.logger = logger
 
@@ -156,9 +157,27 @@ class Kcompile(CommandLineLoad):
         self._log(Log.DEBUG, "systopology: %s" % self.topology)
         self.jobs = len(self.topology)
         self.args = []
-        for n in self.topology:
+
+        # get the cpus for each node
+        self.cpus = {}
+        self.nodes = self.topology.getnodes()
+        for n in self.nodes:
+            self.cpus[n] = [ int(c.split('/')[-1][3:]) for c in glob.glob('/sys/devices/system/node/node%s/cpu[0-9]*' % n) ]
+            self.cpus[n].sort()
+
+            # if a cpulist was specified, only allow cpus in that list on the node
+            if self.cpulist:
+                self.cpus[n] = [ c for c in self.cpus[n] if str(c) in expand_cpulist(self.cpulist) ]
+
+        # remove nodes with no cpus available for running
+        for node,cpus in self.cpus.items():
+            if not cpus:
+                self.nodes.remove(node)
+                self._log(Log.DEBUG, "node %s has no available cpus, removing" % node)
+
+        for n in self.nodes:
             self._log(Log.DEBUG, "Configuring build job for node %d" % int(n))
-            self.buildjobs[n] = KBuildJob(n, self.mydir, self.logger)
+            self.buildjobs[n] = KBuildJob(self.topology[n], self.mydir, self.logger)
             self.args.append(str(self.buildjobs[n])+";")
 
 
@@ -184,7 +203,7 @@ class Kcompile(CommandLineLoad):
             os.close(out)
             os.close(err)
         # clean up object dirs and make sure each has a config file
-        for n in self.topology:
+        for n in self.nodes:
             self.buildjobs[n].clean(sin=null,sout=null,serr=null)
         os.close(null)
         self._setReady()
@@ -204,7 +223,7 @@ class Kcompile(CommandLineLoad):
             cpulist = ""
 
     def _WorkloadTask(self):
-        for n in self.topology:
+        for n in self.nodes:
             if not self.buildjobs[n]:
                 raise RuntimeError("Build job not set up for node %d" % int(n))
             if self.buildjobs[n].jobid is None or self.buildjobs[n].jobid.poll() is not None:
@@ -219,7 +238,7 @@ class Kcompile(CommandLineLoad):
 
     def WorkloadAlive(self):
         # if any of the jobs has stopped, return False
-        for n in self.topology:
+        for n in self.nodes:
             if self.buildjobs[n].jobid.poll() is not None:
                 # Check return code (see above).
                 if self.buildjobs[n].jobid.returncode != 0 and self.buildjobs[n].jobid.returncode != -2:
