@@ -31,7 +31,7 @@ class ServerThread(threading.Thread):
         self.child.StopServer()
 
     def sigcatch(self, signum, frame):
-        print "Shutting down"
+        print("Shutting down")
         self.stop()
 
 
@@ -51,14 +51,14 @@ class ClientTest(object):
 
     def RunTest(self):
         try:
-            print "** Creating XML test document"
+            print("** Creating XML test document")
             self.__prepare_data()
             self.testdoc.saveFormatFileEnc('-','UTF-8', 1)
 
-            print "** Client test [1]: Hello(): %s" % str(self.client.Hello())
+            print("** Client test [1]: Hello(): %s" % str(self.client.Hello()))
             status = self.client.SendReport(self.testdoc)
-            print "** Client test [2]; SendReport(xmlDoc): %s" % str(status)
-        except Exception, e:
+            print("** Client test [2]; SendReport(xmlDoc): %s" % str(status))
+        except Exception as e:
             raise Exception("XML-RPC client test failed: %s" % str(e))
 
 
@@ -72,15 +72,15 @@ def unit_test(rootdir):
 
         # Start a local XML-RPC test server
         srvthread.start()
-        print "** Waiting 2 seconds for server to settle"
+        print("** Waiting 2 seconds for server to settle")
         time.sleep(2)
 
         # Start the client test
-        print "** Starting client tests"
+        print("** Starting client tests")
         clienttest.RunTest()
         ret = 0
-    except Exception, e:
-        print "** EXCEPTION: %s" % str(e)
+    except Exception as e:
+        print("** EXCEPTION: %s" % str(e))
     finally:
         # Stop the local XML-RPC test server
         srvthread.stop()

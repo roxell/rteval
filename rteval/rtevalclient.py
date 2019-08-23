@@ -25,9 +25,9 @@
 #   are deemed to be part of the source code.
 #
 
-import xmlrpclib
+import xmlrpc.client
 import libxml2
-import StringIO
+import io
 import bz2
 import base64
 import platform
@@ -37,7 +37,7 @@ class rtevalclient:
     rtevalclient is a library for sending rteval reports to an rteval server via XML-RPC.
     """
     def __init__(self, url="http://rtserver.farm.hsv.redhat.com/rteval/API1/", hostn = None):
-        self.srv = xmlrpclib.ServerProxy(url)
+        self.srv = xmlrpc.client.ServerProxy(url)
         if hostn is None:
             self.hostname = platform.node()
         else:
@@ -51,9 +51,9 @@ class rtevalclient:
 
     def SendReport(self, xmldoc):
         if xmldoc.type != 'document_xml':
-            raise Exception, "Input is not XML document"
+            raise Exception("Input is not XML document")
 
-        fbuf = StringIO.StringIO()
+        fbuf = io.StringIO()
         xmlbuf = libxml2.createOutputBuffer(fbuf, 'UTF-8')
         doclen = xmldoc.saveFileTo(xmlbuf, 'UTF-8')
 
@@ -61,7 +61,7 @@ class rtevalclient:
         cmpr = compr.compress(fbuf.getvalue())
         data = base64.b64encode(cmpr + compr.flush())
         ret = self.srv.SendReport(self.hostname, data)
-        print "rtevalclient::SendReport() - Sent %i bytes (XML document length: %i bytes, compression ratio: %.02f%%)" % (len(data), doclen, (1-(float(len(data)) / float(doclen)))*100 )
+        print("rtevalclient::SendReport() - Sent %i bytes (XML document length: %i bytes, compression ratio: %.02f%%)" % (len(data), doclen, (1-(float(len(data)) / float(doclen)))*100 ))
         return ret
 
     def SendDataAsFile(self, fname, data, decompr = False):

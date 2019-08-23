@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 #
 #   remove_rtevalrun
 #   A script intended to be run on the database server, which

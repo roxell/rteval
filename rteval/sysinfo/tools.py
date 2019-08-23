@@ -32,13 +32,13 @@ def getcmdpath(which):
     getcmdpath is a method which allows finding an executable in the PATH
     directories to call it from full path
     """
-    if not pathSave.has_key(which):
+    if which not in pathSave:
         for path in os.environ['PATH'].split(':'):
             cmdfile = os.path.join(path, which)
             if os.path.isfile(cmdfile) and os.access(cmdfile, os.X_OK):
                 pathSave[which] = cmdfile
                 break
         if not pathSave[which]:
-            raise RuntimeError, "Command '%s' is unknown on this system" % which
+            raise RuntimeError("Command '%s' is unknown on this system" % which)
     return pathSave[which]
 

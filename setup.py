@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 from distutils.sysconfig import get_python_lib
 from distutils.core import setup
 from os.path import isfile, join
@@ -10,9 +10,9 @@ PYTHONLIB = join(get_python_lib(standard_lib=1, prefix=''), 'site-packages')
 
 # Tiny hack to make rteval-cmd become a rteval when building/installing the package
 try:
-    os.mkdir('dist', 0755)
+    os.mkdir('dist', 0o755)
     distcreated = True
-except OSError, e:
+except OSError as e:
     if e.errno == 17:
         # If it already exists, ignore this error
         distcreated = False
@@ -28,7 +28,7 @@ from dist import RTEVAL_VERSION
 
 # Compress the man page, so distutil will only care for the compressed file
 mangz = gzip.GzipFile('dist/rteval.8.gz', 'w', 9)
-man = open('doc/rteval.8', 'r')
+man = open('doc/rteval.8', 'rb')
 mangz.writelines(man)
 man.close()
 mangz.close()
@@ -79,7 +79,8 @@ mean, variance and standard deviation) and a report is generated.
 os.unlink('dist/rteval')
 os.unlink('dist/rteval.8.gz')
 os.unlink('dist/__init__.py')
-os.unlink('dist/__init__.pyc')
+# TODO FIX THIS, or at least find out why it was there
+#os.unlink('dist/__init__.pyc')
 
 if distcreated:
     try:

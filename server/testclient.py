@@ -28,12 +28,12 @@
 
 import sys
 import libxml2
-import StringIO
+import io
 
 sys.path.append('../rteval')
 import rtevalclient
 
-print "** Creating doc"
+print("** Creating doc")
 d = libxml2.newDoc("1.0")
 n = libxml2.newNode('TestNode1')
 d.setRootElement(n)
@@ -43,14 +43,14 @@ n2.newProp('test','true')
 for i in range(1,5):
     n2 = n.newTextChild(None, 'TestNode3', 'Test line %i' %i)
 
-print "** Doc to be sent"
+print("** Doc to be sent")
 d.saveFormatFileEnc('-','UTF-8', 1)
 
 
-print "** Testing API"
+print("** Testing API")
 client = rtevalclient.rtevalclient("http://localhost:65432/rteval/API1/")
 
-print "** 1: Hello(): %s" % str(client.Hello())
+print("** 1: Hello(): %s" % str(client.Hello()))
 status = client.SendReport(d)
-print "** 2: SendReport(xmlDoc): %s" % str(status)
+print("** 2: SendReport(xmlDoc): %s" % str(status))
 

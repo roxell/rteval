@@ -54,7 +54,7 @@ class OSInfo(object):
         if os.path.exists('/usr/bin/dmesg'):
             subprocess.call('/usr/bin/dmesg > %s' % os.path.join(repdir, "dmesg"), shell=True)
             return
-        print "dmesg file not found at %s and no dmesg exe found!" % dpath
+        print("dmesg file not found at %s and no dmesg exe found!" % dpath)
 
 
 
@@ -64,7 +64,7 @@ class OSInfo(object):
         elif os.path.exists('/usr/sbin/sysreport'):
             exe = '/usr/sbin/sysreport'
         else:
-            raise RuntimeError, "Can't find sosreport/sysreport"
+            raise RuntimeError("Can't find sosreport/sysreport")
 
         self.__logger.log(Log.DEBUG, "report tool: %s" % exe)
         options =  ['-k', 'rpm.rpmva=off',
@@ -115,22 +115,22 @@ def unit_test(rootdir):
         log = Log()
         log.SetLogVerbosity(Log.DEBUG|Log.INFO)
         osi = OSInfo(logger=log)
-        print "Base OS: %s" % osi.get_base_os()
+        print("Base OS: %s" % osi.get_base_os())
 
-        print "Testing OSInfo::copy_dmesg('/tmp'): ",
+        print("Testing OSInfo::copy_dmesg('/tmp'): ", end=' ')
         osi.copy_dmesg('/tmp')
         if os.path.isfile("/tmp/dmesg"):
             md5orig = subprocess.check_output(("md5sum","/var/log/dmesg"))
             md5copy = subprocess.check_output(("md5sum","/tmp/dmesg"))
             if md5orig.split(" ")[0] == md5copy.split(" ")[0]:
-                print "PASS"
+                print("PASS")
             else:
-                print "FAIL (md5sum)"
+                print("FAIL (md5sum)")
             os.unlink("/tmp/dmesg")
         else:
-            print "FAIL (copy failed)"
+            print("FAIL (copy failed)")
 
-        print "Running sysreport/sosreport with output to current dir"
+        print("Running sysreport/sosreport with output to current dir")
         osi.run_sysreport(".")
 
         osinfo_xml = osi.MakeReport()
@@ -138,10 +138,10 @@ def unit_test(rootdir):
         xml_d.setRootElement(osinfo_xml)
         xml_d.saveFormatFileEnc("-", "UTF-8", 1)
 
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

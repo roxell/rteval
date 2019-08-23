@@ -204,7 +204,7 @@ measurement profiles, based on their characteristics"""
         return self
 
 
-    def next(self):
+    def __next__(self):
         """Internal Python iterating method, returns the next
 MeasurementProfile object to be processed"""
 

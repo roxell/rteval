@@ -50,9 +50,11 @@ class KernelInfo(object):
         for p in c.stdout:
             v = p.strip().split()
             kcmd = v.pop(0)
+            kcmd = bytes.decode(kcmd)
             try:
                 if int(v[0]) > 0 and kcmd.startswith('[') and kcmd.endswith(']'):
-                    ret_kthreads[v[0]] = {'policy' : policies[v[1]],
+
+                    ret_kthreads[v[0]] = {'policy' : policies[bytes.decode(v[1])],
                                           'priority' : v[2], 'name' : v[3] }
             except ValueError:
                 pass    # Ignore lines which don't have a number in the first row
@@ -73,7 +75,7 @@ class KernelInfo(object):
                                 "modstate": mod[4]})
                 line = fp.readline()
             fp.close()
-        except Exception, err:
+        except Exception as err:
             raise err
         return modlist
 
@@ -82,7 +84,7 @@ class KernelInfo(object):
         '''get the available and curent clocksources for this kernel'''
         path = '/sys/devices/system/clocksource/clocksource0'
         if not os.path.exists(path):
-            raise RuntimeError, "Can't find clocksource path in /sys"
+            raise RuntimeError("Can't find clocksource path in /sys")
         f = open (os.path.join (path, "current_clocksource"))
         current_clocksource = f.readline().strip()
         f = open (os.path.join (path, "available_clocksource"))
@@ -131,15 +133,15 @@ class KernelInfo(object):
         rep_n.addChild(kthreads_n)
 
         kthreads = self.kernel_get_kthreads()
-        keys = kthreads.keys()
+        keys = list(kthreads.keys())
         if len(keys):
             keys.sort()
             for pid in keys:
                 kthri_n = libxml2.newNode("thread")
                 kthreads_n.addChild(kthri_n)
-                kthri_n.addContent(kthreads[pid]["name"])
+                kthri_n.addContent(bytes.decode(kthreads[pid]["name"]))
                 kthri_n.newProp("policy", kthreads[pid]["policy"])
-                kthri_n.newProp("priority", kthreads[pid]["priority"])
+                kthri_n.newProp("priority", bytes.decode(kthreads[pid]["priority"]))
 
         return rep_n
 
@@ -161,10 +163,10 @@ def unit_test(rootdir):
         xml_d.setRootElement(ki_xml)
         xml_d.saveFormatFileEnc("-", "UTF-8", 1)
 
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 if __name__ == '__main__':

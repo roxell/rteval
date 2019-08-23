@@ -49,7 +49,7 @@ class Database(object):
         if database is not None:
             dsnd['dbname'] = database
 
-        dsn = " ".join(["%s='%s'" %(k,v) for (k,v) in dsnd.items()])
+        dsn = " ".join(["%s='%s'" %(k,v) for (k,v) in list(dsnd.items())])
         self.conn = not self.noaction and psycopg2.connect(dsn) or None
 
 
@@ -57,21 +57,21 @@ class Database(object):
         #
         # Validate input data
         #
-        if type(sqlvars) is not types.DictType:
-            raise AttributeError,'Input parameter is not a Python dict'
+        if type(sqlvars) is not dict:
+            raise AttributeError('Input parameter is not a Python dict')
 
         try:
             sqlvars['table']
             sqlvars['fields']
             sqlvars['records']
-        except KeyError, err:
-            raise KeyError, "Input dictionary do not contain a required element: %s", str(err)
+        except KeyError as err:
+            raise KeyError("Input dictionary do not contain a required element: %s").with_traceback(str(err))
 
-        if type(sqlvars['fields']) is not types.ListType:
-            raise AttributeError,"The 'fields' element is not a list of fields"
+        if type(sqlvars['fields']) is not list:
+            raise AttributeError("The 'fields' element is not a list of fields")
 
-        if type(sqlvars['records']) is not types.ListType:
-            raise AttributeError,"The 'records' element is not a list of fields"
+        if type(sqlvars['records']) is not list:
+            raise AttributeError("The 'records' element is not a list of fields")
 
         if len(sqlvars['records']) == 0:
             return True
@@ -98,8 +98,8 @@ class Database(object):
         #
         results = []
         for rec in sqlvars['records']:
-            if type(rec) is not types.ListType:
-                raise AttributeError, "The field values inside the 'records' list must be in a list"
+            if type(rec) is not list:
+                raise AttributeError("The field values inside the 'records' list must be in a list")
 
             # Create a dictionary, which will be used for the SQL operation
             values = {}
@@ -107,7 +107,7 @@ class Database(object):
                 values[sqlvars['fields'][i]] = rec[i]
 
             if self.debug:
-                print "SQL QUERY: ==> %s" % (sqlstub % values)
+                print("SQL QUERY: ==> %s" % (sqlstub % values))
 
             # Do the INSERT query
             if not self.noaction:
@@ -132,11 +132,11 @@ class Database(object):
         try:
             sql = "DELETE FROM %s WHERE %s" % (
                 table,
-                " AND ".join(["%s = %%(%s)s" % (k,k) for (k,v) in where.items()])
+                " AND ".join(["%s = %%(%s)s" % (k,k) for (k,v) in list(where.items())])
                 )
 
             if self.debug:
-                print "SQL QUERY ==> %s" % (sql % where)
+                print("SQL QUERY ==> %s" % (sql % where))
 
             if not self.noaction:
                 curs = self.conn.cursor()
@@ -146,8 +146,8 @@ class Database(object):
                 return delrows
             else:
                 return 0
-        except Exception, err:
-            raise Exception, "** SQL ERROR ** %s\n** SQL ERROR ** Message: %s" % ((sql % where), str(err))
+        except Exception as err:
+            raise Exception("** SQL ERROR ** %s\n** SQL ERROR ** Message: %s" % ((sql % where), str(err)))
 
     def SELECT(self, table, fields, joins=None, where=None):
         curs = not self.noaction and self.conn.cursor() or None
@@ -158,17 +158,17 @@ class Database(object):
                 ",".join(fields),
                 table,
                 joins and "%s" % joins or "",
-                where and "WHERE %s" % " AND ".join(["%s = %%(%s)s" % (k,k) for (k,v) in where.items()] or "")
+                where and "WHERE %s" % " AND ".join(["%s = %%(%s)s" % (k,k) for (k,v) in list(where.items())] or "")
                 )
             if self.debug:
-                print "SQL QUERY: ==> %s" % (sql % where)
+                print("SQL QUERY: ==> %s" % (sql % where))
             if not self.noaction:
                 curs.execute(sql, where)
             else:
                 # If no action is setup (mainly for debugging), return empty result set
                 return {"table": table, "fields": [], "records": []}
-        except Exception, err:
-            raise Exception, "** SQL ERROR *** %s\n** SQL ERROR ** Message: %s" % (where and (sql % where) or sql, str(err))
+        except Exception as err:
+            raise Exception("** SQL ERROR *** %s\n** SQL ERROR ** Message: %s" % (where and (sql % where) or sql, str(err)))
 
         # Extract field names
         fields = []
@@ -185,7 +185,7 @@ class Database(object):
 
         curs.close()
         if self.debug:
-            print "database::SELECT() result ** Fields: %s\nRecords: %s" % (fields, records)
+            print("database::SELECT() result ** Fields: %s\nRecords: %s" % (fields, records))
         return {"table": table, "fields": fields, "records": records}
 
     def COMMIT(self):
@@ -203,36 +203,36 @@ class Database(object):
         "Helper function to easy extract a field from a record set"
 
         # Check that input data good
-        if type(dbres) is not types.DictType:
-            raise AttributeError,'Database result parameter is not a Python dict'
+        if type(dbres) is not dict:
+            raise AttributeError('Database result parameter is not a Python dict')
 
         try:
             dbres['table']
             dbres['fields']
             dbres['records']
-        except KeyError, err:
-            raise KeyError, "Database result parameter do not contain a required element: %s", str(err)
+        except KeyError as err:
+            raise KeyError("Database result parameter do not contain a required element: %s").with_traceback(str(err))
 
-        if type(dbres['fields']) is not types.ListType:
-            raise AttributeError,"The 'fields' element is not a list of fields"
+        if type(dbres['fields']) is not list:
+            raise AttributeError("The 'fields' element is not a list of fields")
 
-        if type(dbres['records']) is not types.ListType:
-            raise AttributeError,"The 'records' element is not a list of fields"
+        if type(dbres['records']) is not list:
+            raise AttributeError("The 'records' element is not a list of fields")
 
         # Return None when we're going out of boundaries
         if recidx >= len(dbres['records']):
             return None
 
-        if type(field) == types.StringType:
+        if type(field) == bytes:
             # Find the field index of the field name in the records set
             try:
                 fidx = dbres['fields'].index(field)
             except ValueError:
-                raise Exception, "Field '%s' is not found in the database result" % field
-        elif type(field) == types.IntType:
+                raise Exception("Field '%s' is not found in the database result" % field)
+        elif type(field) == int:
             # If the field value is integer, assume it is the numeric field id
             if field >= len(dbres['fields']):
-                raise Exception, "Field id '%i' is too high.  No field available" % field
+                raise Exception("Field id '%i' is too high.  No field available" % field)
             fidx = field
 
         # Return the value
@@ -241,17 +241,17 @@ class Database(object):
 
     def NumTuples(self, dbres):
         # Check that input data good
-        if type(dbres) is not types.DictType:
-            raise AttributeError,'Database result parameter is not a Python dict'
+        if type(dbres) is not dict:
+            raise AttributeError('Database result parameter is not a Python dict')
 
         try:
             dbres['table']
             dbres['fields']
             dbres['records']
-        except KeyError, err:
-            raise KeyError, "Database result parameter do not contain a required element: %s", str(err)
+        except KeyError as err:
+            raise KeyError("Database result parameter do not contain a required element: %s").with_traceback(str(err))
 
-        if type(dbres['records']) is not types.ListType:
-            raise AttributeError,"The 'records' element is not a list of fields"
+        if type(dbres['records']) is not list:
+            raise AttributeError("The 'records' element is not a list of fields")
 
         return len(dbres['records'])

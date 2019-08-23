@@ -211,7 +211,7 @@ class rtevalModulePrototype(threading.Thread):
         "Return libxml2.xmlNode object with the gathered timestamps"
 
         ts_n = libxml2.newNode("timestamps")
-        for k in self.__timestamps.keys():
+        for k in list(self.__timestamps.keys()):
             ts_n.newChild(None, k, str(self.__timestamps[k]))
 
         return ts_n
@@ -277,7 +277,7 @@ the information provided by the module"""
                             metavar='LIST')
         parser.add_option_group(grparser)
 
-        for (modname, mod) in self.__modsloaded.items():
+        for (modname, mod) in list(self.__modsloaded.items()):
             opts = mod.ModuleParameters()
             if len(opts) == 0:
                 continue
@@ -290,9 +290,9 @@ the information provided by the module"""
                 cfg = None
 
             grparser = optparse.OptionGroup(parser, "Options for the %s module" % shortmod)
-            for (o, s) in opts.items():
-                descr   = s.has_key('descr') and s['descr'] or ""
-                metavar = s.has_key('metavar') and s['metavar'] or None
+            for (o, s) in list(opts.items()):
+                descr   = 'descr' in s and s['descr'] or ""
+                metavar = 'metavar' in s and s['metavar'] or None
 
                 try:
                     default = cfg and getattr(cfg, o) or None
@@ -301,7 +301,7 @@ the information provided by the module"""
                     default = None
 
                 if default is None:
-                    default = s.has_key('default') and s['default'] or None
+                    default = 'default' in s and s['default'] or None
 
 
                 grparser.add_option('--%s-%s' % (shortmod, o),
@@ -353,7 +353,7 @@ returned when a ModuleContainer object is iterated over"""
 
     def GetModulesList(self):
         "Returns a list of module names"
-        return self.__modobjects.keys()
+        return list(self.__modobjects.keys())
 
 
     def GetNamedModuleObject(self, modname):
@@ -364,11 +364,11 @@ returned when a ModuleContainer object is iterated over"""
     def __iter__(self):
         "Initiates the iterating process"
 
-        self.__iter_list = self.__modobjects.keys()
+        self.__iter_list = list(self.__modobjects.keys())
         return self
 
 
-    def next(self):
+    def __next__(self):
         """Internal Python iterating method, returns the next
 module name and object to be processed"""
 
@@ -511,7 +511,7 @@ start their workloads yet"""
                 self._logger.log(Log.DEBUG, "\t - Stopping %s" % modname)
                 if mod.is_alive():
                     mod.join(2.0)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 self._logger.log(Log.ERR, "\t\tFailed stopping %s: %s" % (modname, str(e)))
         self.__timestamps['stop'] = datetime.now()
 

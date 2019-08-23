@@ -66,11 +66,17 @@ class Hackbench(CommandLineLoad):
 
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
-                self.cpus[n] = [ c for c in self.cpus[n] if c in expand_cpulist(self.cpulist) ]
+                self.cpus[n] = [ c for c in self.cpus[n] if str(c) in expand_cpulist(self.cpulist) ]
 
             # track largest number of cpus used on a node
             if len(self.cpus[n]) > biggest:
                 biggest = len(self.cpus[n])
+
+        # remove nodes with no cpus available for running
+        for node,cpus in self.cpus.items():
+            if not cpus:
+                self.nodes.remove(node)
+                self._log(Log.DEBUG, "node %s has no available cpus, removing" % node)
 
         # setup jobs based on the number of cores available per node
         self.jobs = biggest * 3
@@ -81,7 +87,7 @@ class Hackbench(CommandLineLoad):
         if len(self.nodes) > 1:
             self.__multinodes = True
             self._log(Log.INFO, "running with multiple nodes (%d)" % len(self.nodes))
-            if os.path.exists('/usr/bin/numactl'):
+            if os.path.exists('/usr/bin/numactl') and not self.cpulist:
                 self.__usenumactl = True
                 self._log(Log.INFO, "using numactl for thread affinity")
 
@@ -128,7 +134,7 @@ class Hackbench(CommandLineLoad):
                              stderr=self.__err)
         if not p:
             self._log(Log.DEBUG, "hackbench failed to start on node %s" % node)
-            raise RuntimeError, "hackbench failed to start on node %s" % node
+            raise RuntimeError("hackbench failed to start on node %s" % node)
         return p
 
     def _WorkloadTask(self):
@@ -147,7 +153,7 @@ class Hackbench(CommandLineLoad):
                 if self.tasks[n].poll() is not None:
                     self.tasks[n].wait()
                     self.tasks[n] = self.__starton(n)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.ENOMEM:
                     raise e
                 # Exit gracefully without a traceback for out-of-memory errors
@@ -166,7 +172,7 @@ class Hackbench(CommandLineLoad):
             return
 
         for node in self.nodes:
-            if self.tasks.has_key(node) and self.tasks[node].poll() is None:
+            if node in self.tasks and self.tasks[node].poll() is None:
                 self._log(Log.INFO, "cleaning up hackbench on node %s" % node)
                 self.tasks[node].send_signal(SIGKILL)
                 if self.tasks[node].poll() == None:

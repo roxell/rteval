@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 #
 #   testclient_sendfile.py
 #   XML-RPC test client which just sends an XML file to the given rteval server

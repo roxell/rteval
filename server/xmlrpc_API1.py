@@ -52,7 +52,7 @@ class XMLRPC_API1():
             if dir is '':
                 continue
             if not os.path.exists(dir):
-                os.mkdir(dir, 0700)
+                os.mkdir(dir, 0o700)
             os.chdir(dir)
         os.chdir(startdir)
 
@@ -98,7 +98,7 @@ class XMLRPC_API1():
         fname = self.__getfilename('queue/', ('%s' % clientid), '.xml', False)
         xmldoc.saveFormatFileEnc(fname,'UTF-8',1)
         if self.debug:
-            print "Copy of report: %s" % fname
+            print("Copy of report: %s" % fname)
 
         # Register the submission and put it in a parse queue
         rterid = rtevaldb.register_submission(self.config, clientid, fname,

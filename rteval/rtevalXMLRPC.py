@@ -24,9 +24,9 @@
 #   are deemed to be part of the source code.
 #
 
-import socket, time
-import rtevalclient, xmlrpclib
-from Log import Log
+import socket, time, xmlrpc.client
+from .rtevalclient import rtevalclient
+from .Log import Log
 
 class rtevalXMLRPC(object):
     def __init__(self, host, logger, mailer = None):
@@ -48,12 +48,12 @@ class rtevalXMLRPC(object):
                 res = self.__client.Hello()
                 attempt = 10
                 ping_success = True
-            except xmlrpclib.ProtocolError:
+            except xmlrpc.client.ProtocolError:
                 # Server do not support Hello(), but is reachable
                 self.__logger.log(Log.INFO, "Got XML-RPC connection with %s but it did not support Hello()"
                                   % self.__host)
                 res = None
-            except socket.error, err:
+            except socket.error as err:
                 self.__logger.log(Log.INFO, "Could not establish XML-RPC contact with %s\n%s"
                                   % (self.__host, str(err)))
 
@@ -67,7 +67,7 @@ class rtevalXMLRPC(object):
                                             "Server %s did not respond." % self.__host)
                     warning_sent = True
 
-                print "Failed pinging XML-RPC server.  Doing another attempt(%i) " % attempt
+                print("Failed pinging XML-RPC server.  Doing another attempt(%i) " % attempt)
                 time.sleep(attempt) #*15) # Incremental sleep - sleep attempts*15 seconds
                 ping_success = False
 
@@ -87,9 +87,9 @@ class rtevalXMLRPC(object):
         warning_sent = False
         while attempt < 6:
             try:
-                print "Submitting report to %s" % self.__url
+                print("Submitting report to %s" % self.__url)
                 rterid = self.__client.SendReport(xmlreport)
-                print "Report registered with submission id %i" % rterid
+                print("Report registered with submission id %i" % rterid)
                 attempt = 10
                 exitcode = 0 # Success
             except socket.error:
@@ -103,10 +103,10 @@ class rtevalXMLRPC(object):
                                               % self.__host)
                     warning_sent = True
 
-                print "Failed sending report.  Doing another attempt(%i) " % attempt
+                print("Failed sending report.  Doing another attempt(%i) " % attempt)
                 time.sleep(attempt) #*5*60) # Incremental sleep - sleep attempts*5 minutes
 
-            except Exception, err:
+            except Exception as err:
                 raise err
 
 

@@ -26,7 +26,7 @@
 
 import os, tarfile
 from datetime import datetime
-import xmlout
+from . import xmlout
 
 
 class rtevalReport(object):
@@ -48,9 +48,9 @@ class rtevalReport(object):
 
         duration = datetime.now() - measure_start
         seconds = duration.seconds
-        hours = seconds / 3600
+        hours = int(seconds / 3600)
         if hours: seconds -= (hours * 3600)
-        minutes = seconds / 60
+        minutes = int(seconds / 60)
         if minutes: seconds -= (minutes * 60)
 
         # Start new XML report
@@ -95,11 +95,11 @@ class rtevalReport(object):
 
     def _show_report(self, xmlfile, xsltfile):
         '''summarize a previously generated xml file'''
-        print "Loading %s for summarizing" % xmlfile
+        print("Loading %s for summarizing" % xmlfile)
 
         xsltfullpath = os.path.join(self.__installdir, xsltfile)
         if not os.path.exists(xsltfullpath):
-            raise RuntimeError, "can't find XSL template (%s)!" % xsltfullpath
+            raise RuntimeError("can't find XSL template (%s)!" % xsltfullpath)
 
         xmlreport = xmlout.XMLOut('rteval', self.__version)
         xmlreport.LoadReport(xmlfile)
@@ -126,7 +126,7 @@ class rtevalReport(object):
 
     def _tar_results(self):
         if not os.path.isdir(self.__reportdir):
-            raise RuntimeError, "no such directory: %s" % reportdir
+            raise RuntimeError("no such directory: %s" % reportdir)
 
         dirname = os.path.dirname(self.__reportdir)
         rptdir = os.path.basename(self.__reportdir)

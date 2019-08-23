@@ -5,7 +5,7 @@ Summary:	Source files for rteval loads
 Group:		Development/Tools
 License:	GPLv2
 URL:		http://git.kernel.org/?p=linux/kernel/git/clrkwllms/rteval.git
-Source0:        https://www.kernel.org/pub/linux/kernel/v4.x/linux-4.9.tar.xz
+Source0:        https://www.kernel.org/pub/linux/kernel/v5.x/linux-5.1.tar.xz
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:	gcc binutils make kernel-headers

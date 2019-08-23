@@ -80,26 +80,26 @@ def unit_test(rootdir):
     def run_log_test(l):
         for lt in range(min(logtypes), max(logtypes)*2):
             test = ", ".join([logtypes_s[logtypes.index(i)] for i in [p for p in takewhile(lambda x: x <= lt, (2**i for i in count())) if p & lt]])
-            print "Testing verbosity flags set to: (%i) %s" % (lt, test)
+            print("Testing verbosity flags set to: (%i) %s" % (lt, test))
             msg = "Log entry when verbosity is set to %i [%s]" % (lt, test)
             l.SetLogVerbosity(lt)
             test_log(l, msg)
-            print "-"*20
+            print("-"*20)
 
     try:
-        print "** Testing stdout"
+        print("** Testing stdout")
         l = Log()
         run_log_test(l)
 
-        print "** Testing file logging - using test.log"
+        print("** Testing file logging - using test.log")
         l = Log("test.log")
         run_log_test(l)
 
         return 0
-    except Exception, e:
+    except Exception as e:
         import traceback
         traceback.print_exc(file=sys.stdout)
-        print "** EXCEPTION %s", str(e)
+        print("** EXCEPTION %s", str(e))
         return 1
 
 

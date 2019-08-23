@@ -87,7 +87,7 @@ class RunData(object):
 
         self._log(Log.INFO, "reducing %s" % self.__id)
         total = 0
-        keys = self.__samples.keys()
+        keys = list(self.__samples.keys())
         keys.sort()
         sorted = []
 
@@ -167,7 +167,7 @@ class RunData(object):
 
             hist_n = rep_n.newChild(None, 'histogram', None)
             hist_n.newProp('nbuckets', str(len(self.__samples)))
-            keys = self.__samples.keys()
+            keys = list(self.__samples.keys())
             keys.sort()
             for k in keys:
                 if self.__samples[k] == 0:
@@ -225,14 +225,6 @@ class Cyclictest(rtevalModulePrototype):
         self.__breaktraceval = None
 
 
-    def __getmode(self):
-        if self.__numanodes > 1:
-            self._log(Log.DEBUG, "running in NUMA mode (%d nodes)" % self.__numanodes)
-            return '--numa'
-        self._log(Log.DEBUG, "running in SMP mode")
-        return '--smp'
-
-
     def __get_debugfs_mount(self):
         ret = None
         mounts = open('/proc/mounts')
@@ -255,11 +247,11 @@ class Cyclictest(rtevalModulePrototype):
 
 
     def _WorkloadPrepare(self):
-        self.__interval = self.__cfg.has_key('interval') and '-i%d' % int(self.__cfg.interval) or ""
+        self.__interval = 'interval' in self.__cfg and '-i%d' % int(self.__cfg.interval) or ""
 
         self.__cmd = ['cyclictest',
                       self.__interval,
-                      '-qmun',
+                      '-qmu',
                       '-h %d' % self.__buckets,
                       "-p%d" % int(self.__priority),
                       ]
@@ -267,18 +259,19 @@ class Cyclictest(rtevalModulePrototype):
             self.__cmd.append('-t%d' % self.__numcores)
             self.__cmd.append('-a%s' % self.__cpulist)
         else:
-            self.__cmd.append(self.__getmode())
+            self.__cmd.append('-t')
+            self.__cmd.append('-a')
 
-        if self.__cfg.has_key('threads') and self.__cfg.threads:
+        if 'threads' in self.__cfg and self.__cfg.threads:
             self.__cmd.append("-t%d" % int(self.__cfg.threads))
 
-        if self.__cfg.has_key('breaktrace') and self.__cfg.breaktrace:
+        if 'breaktrace' in self.__cfg and self.__cfg.breaktrace:
             self.__cmd.append("-b%d" % int(self.__cfg.breaktrace))
             self.__cmd.append("--tracemark")
             self.__cmd.append("--notrace")
 
         # Buffer for cyclictest data written to stdout
-        self.__cyclicoutput = tempfile.SpooledTemporaryFile(mode='rw+b')
+        self.__cyclicoutput = tempfile.SpooledTemporaryFile(mode='w+b')
 
 
     def _WorkloadTask(self):
@@ -290,7 +283,7 @@ class Cyclictest(rtevalModulePrototype):
         self.__nullfp = os.open('/dev/null', os.O_RDWR)
 
         debugdir = self.__get_debugfs_mount()
-        if self.__cfg.has_key('breaktrace') and self.__cfg.breaktrace and debugdir:
+        if 'breaktrace' in self.__cfg and self.__cfg.breaktrace and debugdir:
             # Ensure that the trace log is clean
             trace = os.path.join(debugdir, 'tracing', 'trace')
             fp = open(os.path.join(trace), "w")
@@ -299,13 +292,13 @@ class Cyclictest(rtevalModulePrototype):
             fp.close()
 
         self.__cyclicoutput.seek(0)
-	try:
+        try:
             self.__cyclicprocess = subprocess.Popen(self.__cmd,
                                                 stdout=self.__cyclicoutput,
                                                 stderr=self.__nullfp,
                                                 stdin=self.__nullfp)
             self.__started = True
-	except OSError:
+        except OSError:
             self.__started = False
 
 
@@ -327,6 +320,7 @@ class Cyclictest(rtevalModulePrototype):
         # now parse the histogram output
         self.__cyclicoutput.seek(0)
         for line in self.__cyclicoutput:
+            line = bytes.decode(line)
             if line.startswith('#'):
                 # Catch if cyclictest stopped due to a breaktrace
                 if line.startswith('# Break value: '):
@@ -353,7 +347,7 @@ class Cyclictest(rtevalModulePrototype):
                 self.__cyclicdata['system'].bucket(index, int(vals[i+1]))
 
         # generate statistics for each RunData object
-        for n in self.__cyclicdata.keys():
+        for n in list(self.__cyclicdata.keys()):
             #print "reducing self.__cyclicdata[%s]" % n
             self.__cyclicdata[n].reduce()
             #print self.__cyclicdata[n]
@@ -429,7 +423,7 @@ if __name__ == '__main__':
     cfg = rtevalConfig({}, logger=l)
     prms = {}
     modprms = ModuleParameters()
-    for c, p in modprms.items():
+    for c, p in list(modprms.items()):
         prms[c] = p['default']
     cfg.AppendConfig('cyclictest', prms)
 

@@ -131,7 +131,7 @@ if __name__ == '__main__':
     cfg = rtevalConfig({}, logger=l)
     prms = {}
     modprms = ModuleParameters()
-    for c, p in modprms.items():
+    for c, p in list(modprms.items()):
         prms[c] = p['default']
     cfg.AppendConfig('MeasurementModuleTemplate', prms)
 
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     c._WorkloadSetup()
     c._WorkloadPrepare()
     c._WorkloadTask()
-    print "Running for approx %i seconds" % runtime
+    print("Running for approx %i seconds" % runtime)
     while runtime > 0:
         c.WorkloadAlive()
         time.sleep(1)

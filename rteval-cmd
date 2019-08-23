@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 # -*- coding: utf-8 -*-
 #
 #   rteval - script for evaluating platform suitability for RT Linux
@@ -52,7 +52,7 @@ def summarize(repfile, xslt):
         try:
             t = tarfile.open(repfile)
         except:
-            print "Don't know how to summarize %s (tarfile open failed)" % repfile
+            print("Don't know how to summarize %s (tarfile open failed)" % repfile)
             return
         element = None
         for f in t.getnames():
@@ -60,7 +60,7 @@ def summarize(repfile, xslt):
                 element = f
                 break
         if element == None:
-            print "No summary.xml found in tar archive %s" % repfile
+            print("No summary.xml found in tar archive %s" % repfile)
             return
         tmp = tempfile.gettempdir()
         t.extract(element, path=tmp)
@@ -83,7 +83,7 @@ def summarize(repfile, xslt):
 
     # Parse and print the report through the XSLT template - preserve proper encoding
     resdoc = xsltprs(xmldoc)
-    print unicode(resdoc).encode('UTF-8')
+    print(str(resdoc))
 
     # Clean up
     del resdoc
@@ -129,12 +129,12 @@ def parse_options(cfg, parser, cmdargs):
     parser.add_option("-D", '--debug', dest='rteval___debugging',
                       action='store_true', default=rtevcfg.debugging,
                       help='turn on debug prints (default: %default)')
-    parser.add_option("-X", '--xmlrpc-submit', dest='rteval___xmlrpc',
-                      action='store', default=rtevcfg.xmlrpc, metavar='HOST',
-                      help='Hostname to XML-RPC server to submit reports')
-    parser.add_option("-P", "--xmlrpc-no-abort", dest="rteval___xmlrpc_noabort",
-                      action='store_true', default=False,
-                      help="Do not abort if XML-RPC server do not respond to ping request");
+    #parser.add_option("-X", '--xmlrpc-submit', dest='rteval___xmlrpc',
+    #                  action='store', default=rtevcfg.xmlrpc, metavar='HOST',
+    #                  help='Hostname to XML-RPC server to submit reports')
+    #parser.add_option("-P", "--xmlrpc-no-abort", dest="rteval___xmlrpc_noabort",
+    #                  action='store_true', default=False,
+    #                  help="Do not abort if XML-RPC server do not respond to ping request");
     parser.add_option("-Z", '--summarize', dest='rteval___summarize',
                       action='store_true', default=False,
                       help='summarize an already existing XML report')
@@ -162,7 +162,7 @@ def parse_options(cfg, parser, cmdargs):
 
     (cmd_opts, cmd_args) = parser.parse_args(args = cmdargs)
     if cmd_opts.rteval___version:
-        print("rteval version %s" % RTEVAL_VERSION)
+        print(("rteval version %s" % RTEVAL_VERSION))
         sys.exit(0);
 
     if cmd_opts.rteval___duration:
@@ -266,7 +266,7 @@ if __name__ == '__main__':
         # if --summarize was specified then just parse the XML, print it and exit
         if rtevcfg.summarize or rtevcfg.rawhistogram:
             if len(cmd_args) < 1:
-                raise RuntimeError, "Must specify at least one XML file with --summarize!"
+                raise RuntimeError("Must specify at least one XML file with --summarize!")
 
             for x in cmd_args:
                 if rtevcfg.summarize:
@@ -277,7 +277,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
         if os.getuid() != 0:
-            print "Must be root to run rteval!"
+            print("Must be root to run rteval!")
             sys.exit(-1)
 
         logger.log(Log.DEBUG, '''rteval options:
@@ -295,7 +295,7 @@ if __name__ == '__main__':
                 rtevcfg.duration, rtevcfg.sysreport))
 
         if not os.path.isdir(rtevcfg.workdir):
-            raise RuntimeError, "work directory %s does not exist" % rtevcfg.workdir
+            raise RuntimeError("work directory %s does not exist" % rtevcfg.workdir)
 
 
         rteval = RtEval(config, loadmods, measuremods, logger)

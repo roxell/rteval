@@ -38,11 +38,11 @@ class rtevalMailer(object):
         # * to_address
         #
         errmsg = ""
-        if not cfg.has_key('smtp_server'):
+        if 'smtp_server' not in cfg:
             errmsg = "\n** Missing smtp_server in config"
-        if not cfg.has_key('from_address'):
+        if 'from_address' not in cfg:
             errmsg += "\n** Missing from_address in config"
-        if not cfg.has_key('to_address'):
+        if 'to_address' not in cfg:
             errmsg += "\n** Missing to_address in config"
 
         if not errmsg == "":

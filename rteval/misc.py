@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+#!/usr/bin/python3 -tt
 #
 # Copyright (C) 2015 Clark Williams <clark.williams@gmail.com>
 # Copyright (C) 2015 Red Hat, Inc.
@@ -29,7 +29,7 @@ def expand_cpulist(cpulist):
         if '-' in part:
             a, b = part.split('-')
             a, b = int(a), int(b)
-            result.extend(range(a, b + 1))
+            result.extend(list(range(a, b + 1)))
         else:
             a = int(part)
             result.append(a)
@@ -42,7 +42,10 @@ def invert_cpulist(cpulist):
     return [ c for c in online_cpus() if c not in cpulist]
 
 def compress_cpulist(cpulist):
-    return ",".join(cpulist)
+    if type(cpulist[0]) == int:
+        return ",".join(str(e) for e in cpulist)
+    else:
+        return ",".join(cpulist)
 
 def cpuinfo():
     core = -1
@@ -61,9 +64,9 @@ def cpuinfo():
 if __name__ == "__main__":
 
     info = cpuinfo()
-    idx = info.keys()
+    idx = list(info.keys())
     idx.sort()
     for i in idx:
-        print "%s: %s" % (i, info[i])
+        print("%s: %s" % (i, info[i]))
 
-    print "0: %s" % (info['0']['model name'])
+    print("0: %s" % (info['0']['model name']))
