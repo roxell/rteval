@@ -2,7 +2,7 @@
 %{!?python_ver: %define python_ver %(%{__python} -c "import sys ; print sys.version[:3]")}
 
 Name:		rteval
-Version:	2.14
+Version:	3.0
 Release:	1%{?dist}
 Summary:	Utility to evaluate system suitability for RT Linux
 
@@ -12,10 +12,10 @@ URL:		http://git.kernel.org/?p=linux/kernel/git/clrkwllms/rteval.git
 Source0:	rteval-%{version}.tar.bz2
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:	python
-Requires:	python
-Requires:	python-schedutils python-ethtool python-lxml
-Requires:	python-dmidecode >= 3.10
+BuildRequires:	python3-devel
+Requires:	platform-python
+Requires:	python3-schedutils python3-ethtool python3-lxml
+Requires:	python3-dmidecode >= 3.10
 Requires:	rt-tests >= 0.97
 Requires:	rteval-loads >= 1.4
 Requires:	rteval-common => %{version}-%{release}
