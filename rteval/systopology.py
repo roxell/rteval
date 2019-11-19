@@ -117,8 +117,6 @@ class CpuList(object):
     def is_online(self, n):
         if n not in self.cpulist:
             raise RuntimeError("invalid cpu number %d" % n)
-        if n == 0:
-            return True
         path = os.path.join(CpuList.cpupath,'cpu%d' % n)
         # Some hardware doesn't allow cpu0 to be turned off
         if not os.path.exists(path + '/online') and n == 0:
