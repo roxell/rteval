@@ -120,7 +120,7 @@ class Hackbench(CommandLineLoad):
     def __starton(self, node):
         if self.__multinodes or self.cpulist:
             if self.__usenumactl:
-                args = [ 'numactl', '--cpunodebind', node ] + self.args
+                args = [ 'numactl', '--cpunodebind', str(node) ] + self.args
             else:
                 cpulist = ",".join([ str(n) for n in self.cpus[node] ])
                 args = ['taskset', '-c', cpulist ] + self.args
