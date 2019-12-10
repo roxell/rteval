@@ -61,7 +61,7 @@ class Hackbench(CommandLineLoad):
         # get the cpus for each node
         self.cpus = {}
         biggest = 0
-        for n in sysTop:
+        for n in sysTop.getnodes():
             self.cpus[n] = sysTop.getcpus(int(n))
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
@@ -73,7 +73,7 @@ class Hackbench(CommandLineLoad):
                 biggest = node_biggest
 
         # remove nodes with no cpus available for running
-        for node,cpus in self.cpus.items():
+        for node,cpus in list(self.cpus.items()):
             if not cpus:
                 self.nodes.remove(node)
                 self._log(Log.DEBUG, "node %s has no available cpus, removing" % node)
