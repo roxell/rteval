@@ -65,7 +65,7 @@ class Hackbench(CommandLineLoad):
             self.cpus[n] = sysTop.getcpus(int(n))
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
-                self.cpus[n] = [ c for c in self.cpus[n] if c in expand_cpulist(self.cpulist) ]
+                self.cpus[n] = [ c for c in self.cpus[n] if str(c) in expand_cpulist(self.cpulist) ]
 
             # track largest number of cpus used on a node
             node_biggest = len(sysTop.getcpus(int(n)))
