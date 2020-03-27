@@ -72,6 +72,10 @@ class Hackbench(CommandLineLoad):
             if node_biggest > biggest:
                 biggest = node_biggest
 
+        for node,cpus in self.cpus.items():
+            if not cpus:
+                self.nodes.remove(int(node))
+
         # setup jobs based on the number of cores available per node
         self.jobs = biggest * 3
 
@@ -81,7 +85,7 @@ class Hackbench(CommandLineLoad):
         if len(self.nodes) > 1:
             self.__multinodes = True
             self._log(Log.INFO, "running with multiple nodes (%d)" % len(self.nodes))
-            if os.path.exists('/usr/bin/numactl'):
+            if os.path.exists('/usr/bin/numactl') and not self.cpulist:
                 self.__usenumactl = True
                 self._log(Log.INFO, "using numactl for thread affinity")
 
