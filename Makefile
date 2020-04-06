@@ -15,9 +15,6 @@ XMLRPCDIR := server
 DESTDIR	:=
 PREFIX  :=      /usr
 DATADIR	:=	$(DESTDIR)/$(PREFIX)/share
-CONFDIR	:=	$(DESTDIR)/etc
-MANDIR	:=	$(DESTDIR)/$(PREFIX)/share/man
-PYLIB	:= 	$(DESTDIR)$(shell $(PYTHON) -c 'import distutils.sysconfig;  print distutils.sysconfig.get_python_lib()')
 LOADDIR	:=	loadsource
 
 KLOAD	:=	$(LOADDIR)/linux-5.1.tar.xz
@@ -60,17 +57,6 @@ install_loads:	$(LOADS)
 
 installdirs:
 	[ -d $(DATADIR)/rteval ] || mkdir -p $(DATADIR)/rteval
-	[ -d $(CONFDIR) ] || mkdir -p $(CONFDIR)
-	[ -d $(MANDIR)/man8 ]  || mkdir -p $(MANDIR)/man8
-	[ -d $(PYLIB) ]   || mkdir -p $(PYLIB)
-	[ -d $(DESTDIR)/usr/bin ] || mkdir -p $(DESTDIR)/usr/bin
-
-uninstall:
-	rm -f /usr/bin/rteval
-	rm -f $(CONFDIR)/rteval.conf
-	rm -f $(MANDIR)/man8/rteval.8.gz
-	rm -rf $(PYLIB)/rteval
-	rm -rf $(DATADIR)/rteval
 
 tarfile: rteval-$(VERSION).tar.bz2
 
