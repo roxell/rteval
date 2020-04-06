@@ -189,9 +189,6 @@ class rtevalModulePrototype(threading.Thread):
 
                 if self.shouldStop():
                     break
-                if not self.WorkloadAlive():
-                    self._log(Log.DEBUG, "%s workload stopped running." % self._module_type)
-                    break
                 time.sleep(self.__sleeptime)
 
             self.__timestamps["runloop_stop"] = datetime.now()
