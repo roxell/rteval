@@ -5,7 +5,7 @@ else
 	PYTHON = python2
 endif
 PACKAGE :=	rteval
-VERSION :=      $(shell $(PYTHON) -c "from rteval import RTEVAL_VERSION; print RTEVAL_VERSION")
+VERSION :=      $(shell $(PYTHON) -c "from rteval import RTEVAL_VERSION; print(RTEVAL_VERSION)")
 D	:=	10
 
 # XML-RPC related files
