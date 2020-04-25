@@ -61,7 +61,7 @@ class Hackbench(CommandLineLoad):
         # get the cpus for each node
         self.cpus = {}
         biggest = 0
-        for n in sysTop:
+        for n in sysTop.getnodes():
             self.cpus[n] = sysTop.getcpus(int(n))
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
