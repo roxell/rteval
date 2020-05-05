@@ -59,7 +59,7 @@ def summarize(repfile, xslt):
             if f.find('summary.xml') != -1:
                 element = f
                 break
-        if element == None:
+        if element is None:
             print("No summary.xml found in tar archive %s" % repfile)
             return
         tmp = tempfile.gettempdir()
@@ -160,10 +160,10 @@ def parse_options(cfg, parser, cmdargs):
     if not cmdargs:
         cmdargs = ["--help"]
 
-    (cmd_opts, cmd_args) = parser.parse_args(args = cmdargs)
+    (cmd_opts, cmd_args) = parser.parse_args(args=cmdargs)
     if cmd_opts.rteval___version:
         print(("rteval version %s" % RTEVAL_VERSION))
-        sys.exit(0);
+        sys.exit(0)
 
     if cmd_opts.rteval___duration:
         mult = 1.0
@@ -217,15 +217,14 @@ if __name__ == '__main__':
         except ValueError:
             # No configuration file given, load defaults
             config.Load()
-            pass
 
         if not config.HasSection('loads'):
-            config.AppendConfig('loads',{
-                    'kcompile'   : 'module',
-                    'hackbench'  : 'module' })
+            config.AppendConfig('loads', {
+                'kcompile'   : 'module',
+                'hackbench'  : 'module'})
 
-        if not config.HasSection('measurement'):
-            config.AppendConfig('measurement', {
+            if not config.HasSection('measurement'):
+                config.AppendConfig('measurement', {
                     'cyclictest' : 'module',
                     'sysstat' : 'module'})
 
@@ -289,10 +288,10 @@ if __name__ == '__main__':
      logging:  %s
      duration: %f
      sysreport: %s''' % (
-                rtevcfg.workdir, rtevcfg.srcdir,
-                rtevcfg.reportdir, rtevcfg.verbose,
-                rtevcfg.debugging, rtevcfg.logging,
-                rtevcfg.duration, rtevcfg.sysreport))
+         rtevcfg.workdir, rtevcfg.srcdir,
+         rtevcfg.reportdir, rtevcfg.verbose,
+         rtevcfg.debugging, rtevcfg.logging,
+         rtevcfg.duration, rtevcfg.sysreport))
 
         if not os.path.isdir(rtevcfg.workdir):
             raise RuntimeError("work directory %s does not exist" % rtevcfg.workdir)
@@ -307,7 +306,7 @@ if __name__ == '__main__':
             loadmods.Start()
             nthreads = loadmods.Unleash()
             logger.log(Log.INFO, "Started %i load threads - will run for %f seconds" % (
-                    nthreads, rtevcfg.duration))
+                nthreads, rtevcfg.duration))
             logger.log(Log.INFO, "No measurements will be performed, due to the --onlyload option")
             time.sleep(rtevcfg.duration)
             loadmods.Stop()
