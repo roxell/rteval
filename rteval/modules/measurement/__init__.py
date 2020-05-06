@@ -89,7 +89,7 @@ class MeasurementProfile(RtEvalModules):
         if self.__run_parallel:
             return self._isAlive()
 
-        if len(self.__serialised_mods) > 0:
+        if self.__serialised_mods:
             # If running serialised, first check if measurement is still running,
             # if so - return True.
             mod = self.GetNamedModuleObject(self.__serialised_mods[0])
@@ -98,7 +98,7 @@ class MeasurementProfile(RtEvalModules):
 
             # If not, go to next on the list and kick it off
             self.__serialised_mods.remove(self.__serialised_mods[0])
-            if len(self.__serialised_mods) > 0:
+            if self.__serialised_mods:
                 mod = self.GetNamedModuleObject(self.__serialised_mods[0])
                 mod.setStart()
                 return True
@@ -107,7 +107,7 @@ class MeasurementProfile(RtEvalModules):
         return False
 
 
-class MeasurementModules(object):
+class MeasurementModules:
     """Class which takes care of all measurement modules and groups them into
 measurement profiles, based on their characteristics"""
 
@@ -211,6 +211,6 @@ MeasurementProfile object to be processed"""
         if self.__iter_item == 0:
             self.__iter_item = None
             raise StopIteration
-        else:
-            self.__iter_item -= 1
-            return self.__measureprofiles[self.__iter_item]
+
+        self.__iter_item -= 1
+        return self.__measureprofiles[self.__iter_item]
