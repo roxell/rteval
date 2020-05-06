@@ -65,7 +65,7 @@ class Hackbench(CommandLineLoad):
             self.cpus[n] = sysTop.getcpus(int(n))
             # if a cpulist was specified, only allow cpus in that list on the node
             if self.cpulist:
-                self.cpus[n] = [ c for c in self.cpus[n] if str(c) in expand_cpulist(self.cpulist) ]
+                self.cpus[n] = [c for c in self.cpus[n] if str(c) in expand_cpulist(self.cpulist)]
 
             # track largest number of cpus used on a node
             node_biggest = len(sysTop.getcpus(int(n)))
@@ -73,7 +73,7 @@ class Hackbench(CommandLineLoad):
                 biggest = node_biggest
 
         # remove nodes with no cpus available for running
-        for node,cpus in list(self.cpus.items()):
+        for node, cpus in list(self.cpus.items()):
             if not cpus:
                 self.nodes.remove(node)
                 self._log(Log.DEBUG, "node %s has no available cpus, removing" % node)
@@ -91,7 +91,7 @@ class Hackbench(CommandLineLoad):
                 self.__usenumactl = True
                 self._log(Log.INFO, "using numactl for thread affinity")
 
-        self.args = ['hackbench',  '-P',
+        self.args = ['hackbench', '-P',
                      '-g', str(self.jobs),
                      '-l', str(self._cfg.setdefault('loops', '1000')),
                      '-s', str(self._cfg.setdefault('datasize', '1000'))
@@ -120,10 +120,10 @@ class Hackbench(CommandLineLoad):
     def __starton(self, node):
         if self.__multinodes or self.cpulist:
             if self.__usenumactl:
-                args = [ 'numactl', '--cpunodebind', str(node) ] + self.args
+                args = ['numactl', '--cpunodebind', str(node)] + self.args
             else:
-                cpulist = ",".join([ str(n) for n in self.cpus[node] ])
-                args = ['taskset', '-c', cpulist ] + self.args
+                cpulist = ",".join([str(n) for n in self.cpus[node]])
+                args = ['taskset', '-c', cpulist] + self.args
         else:
             args = self.args
 
@@ -175,7 +175,7 @@ class Hackbench(CommandLineLoad):
             if node in self.tasks and self.tasks[node].poll() is None:
                 self._log(Log.INFO, "cleaning up hackbench on node %s" % node)
                 self.tasks[node].send_signal(SIGKILL)
-                if self.tasks[node].poll() == None:
+                if self.tasks[node].poll() is None:
                     time.sleep(2)
             self.tasks[node].wait()
             del self.tasks[node]
