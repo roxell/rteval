@@ -24,13 +24,13 @@
 
 import sys
 
-class Log(object):
-    NONE   = 0
+class Log:
+    NONE = 0
     ALWAYS = 0
-    INFO   = 1<<0
-    WARN   = 1<<1
-    ERR    = 1<<2
-    DEBUG  = 1<<3
+    INFO = 1<<0
+    WARN = 1<<1
+    ERR = 1<<2
+    DEBUG = 1<<3
 
 
     def __init__(self, logfile=None):
@@ -106,4 +106,3 @@ def unit_test(rootdir):
 
 if __name__ == '__main__':
     unit_test(None)
-
