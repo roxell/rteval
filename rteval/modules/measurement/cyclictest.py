@@ -25,12 +25,17 @@
 #   are deemed to be part of the source code.
 #
 
-import os, sys, subprocess, signal, libxml2, shutil, tempfile, time
+import os
+import subprocess
+import signal
+import time
+import tempfile
+import libxml2
 from rteval.Log import Log
 from rteval.modules import rtevalModulePrototype
 from rteval.misc import expand_cpulist, online_cpus, cpuinfo
 
-class RunData(object):
+class RunData:
     '''class to keep instance data from a cyclictest run'''
     def __init__(self, coreid, datatype, priority, logfnc):
         self.__id = coreid
@@ -51,7 +56,7 @@ class RunData(object):
         self._log = logfnc
 
     def __str__(self):
-        retval =  "id:         %s\n" % self.__id
+        retval = "id:         %s\n" % self.__id
         retval += "type:       %s\n" % self.__type
         retval += "numsamples: %d\n" % self.__numsamples
         retval += "min:        %d\n" % self.__min
@@ -207,7 +212,7 @@ class Cyclictest(rtevalModulePrototype):
 
         # create a RunData object for each core we'll measure
         for core in self.__cpus:
-            self.__cyclicdata[core] = RunData(core, 'core',self.__priority,
+            self.__cyclicdata[core] = RunData(core, 'core', self.__priority,
                                               logfnc=self._log)
             self.__cyclicdata[core].description = info[core]['model name']
 
@@ -294,9 +299,9 @@ class Cyclictest(rtevalModulePrototype):
         self.__cyclicoutput.seek(0)
         try:
             self.__cyclicprocess = subprocess.Popen(self.__cmd,
-                                                stdout=self.__cyclicoutput,
-                                                stderr=self.__nullfp,
-                                                stdin=self.__nullfp)
+                    stdout=self.__cyclicoutput,
+                    stderr=self.__nullfp,
+                    stdin=self.__nullfp)
             self.__started = True
         except OSError:
             self.__started = False
@@ -328,11 +333,11 @@ class Cyclictest(rtevalModulePrototype):
                 continue
 
             # Skipping blank lines
-            if len(line) == 0:
+            if not line:
                 continue
 
             vals = line.split()
-            if len(vals) == 0:
+            if not vals:
                 # If we don't have any values, don't try parsing
                 continue
 
@@ -342,7 +347,7 @@ class Cyclictest(rtevalModulePrototype):
                 self._log(Log.DEBUG, "cyclictest: unexpected output: %s" % line)
                 continue
 
-            for i,core in enumerate(self.__cpus):
+            for i, core in enumerate(self.__cpus):
                 self.__cyclicdata[core].bucket(index, int(vals[i+1]))
                 self.__cyclicdata['system'].bucket(index, int(vals[i+1]))
 
@@ -444,4 +449,4 @@ if __name__ == '__main__':
 
     xml = libxml2.newDoc('1.0')
     xml.setRootElement(rep_n)
-    xml.saveFormatFileEnc('-','UTF-8',1)
+    xml.saveFormatFileEnc('-', 'UTF-8', 1)
