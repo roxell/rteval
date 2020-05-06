@@ -33,11 +33,11 @@ from rteval.modules import rtevalModulePrototype
 class sysstat(rtevalModulePrototype):
     def __init__(self, config, logger=None):
         rtevalModulePrototype.__init__(self, 'measurement', 'sysstat', logger)
-        self.__cfg      = config
-        self.__started  = False
+        self.__cfg = config
+        self.__started = False
         self.__logentry = 0
         self.__bin_sadc = "/usr/lib64/sa/sadc" # FIXME: Do dynamically
-        self.__datadir  =  os.path.join(self.__cfg.reportdir, 'sysstat')
+        self.__datadir = os.path.join(self.__cfg.reportdir, 'sysstat')
         self.__datafile = os.path.join(self.__datadir, "sysstat.dat")
 
 
@@ -93,10 +93,10 @@ class sysstat(rtevalModulePrototype):
         compr = bz2.BZ2Compressor(9)
         cmpr = compr.compress(fp.read())
         data = base64.b64encode(cmpr + compr.flush())
-        data_n = rep_n.newTextChild(None, 'data', "\n"+"\n".join(textwrap.wrap(data,75))+"\n")
+        data_n = rep_n.newTextChild(None, 'data', "\n"+"\n".join(textwrap.wrap(data, 75))+"\n")
         data_n.newProp('contents', 'sysstat/sar binary data')
-        data_n.newProp('encoding','base64')
-        data_n.newProp('compression','bz2')
+        data_n.newProp('encoding', 'base64')
+        data_n.newProp('compression', 'bz2')
         fp.close()
         del cmpr
         del compr
@@ -154,4 +154,4 @@ if __name__ == '__main__':
 
     xml = libxml2.newDoc('1.0')
     xml.setRootElement(rep_n)
-    xml.saveFormatFileEnc('-','UTF-8',1)
+    xml.saveFormatFileEnc('-', 'UTF-8', 1)
