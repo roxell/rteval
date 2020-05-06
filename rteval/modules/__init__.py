@@ -22,10 +22,13 @@
 #   are deemed to be part of the source code.
 #
 
+import time
+from datetime import datetime
+import threading
+import optparse
+import libxml2
 from rteval.Log import Log
 from rteval.rtevalConfig import rtevalCfgSection
-from datetime import datetime
-import time, libxml2, threading, optparse
 
 __all__ = ["rtevalRuntimeError", "rtevalModulePrototype", "ModuleContainer", "RtEvalModules"]
 
@@ -115,7 +118,7 @@ class rtevalModulePrototype(threading.Thread):
         self.__timestamps["finished_set"] = datetime.now()
 
 
-    def WaitForCompletion(self, wtime = None):
+    def WaitForCompletion(self, wtime=None):
         "Blocks until the module has completed its workload"
         if not self.shouldStart():
             # If it hasn't been started yet, nothing to wait for
@@ -215,7 +218,7 @@ class rtevalModulePrototype(threading.Thread):
 
 
 
-class ModuleContainer(object):
+class ModuleContainer:
     """The ModuleContainer keeps an overview over loaded modules and the objects it
 will instantiate.  These objects are accessed by iterating the ModuleContainer object."""
 
@@ -256,7 +259,7 @@ reference from the first import"""
             return mod
 
 
-    def ModuleInfo(self, modname, modroot = None):
+    def ModuleInfo(self, modname, modroot=None):
         """Imports a module and calls the modules' ModuleInfo() function and returns
 the information provided by the module"""
 
@@ -288,7 +291,7 @@ the information provided by the module"""
 
             grparser = optparse.OptionGroup(parser, "Options for the %s module" % shortmod)
             for (o, s) in list(opts.items()):
-                descr   = 'descr' in s and s['descr'] or ""
+                descr = 'descr' in s and s['descr'] or ""
                 metavar = 'metavar' in s and s['metavar'] or None
 
                 try:
@@ -311,7 +314,7 @@ the information provided by the module"""
             parser.add_option_group(grparser)
 
 
-    def InstantiateModule(self, modname, modcfg, modroot = None):
+    def InstantiateModule(self, modname, modcfg, modroot=None):
         """Imports a module and instantiates an object from the modules create() function.
 The instantiated object is returned in this call"""
 
@@ -328,7 +331,7 @@ returned when a ModuleContainer object is iterated over"""
         self.__modobjects[modname] = modobj
 
 
-    def ExportModule(self, modname, modroot = None):
+    def ExportModule(self, modname, modroot=None):
         "Export module info, used to transfer an imported module to another ModuleContainer"
         if modroot is None:
             modroot = self.__modules_root
@@ -378,7 +381,7 @@ module name and object to be processed"""
 
 
 
-class RtEvalModules(object):
+class RtEvalModules:
     """RtEvalModules should normally be inherrited by a more specific module class.
     This class takes care of managing imported modules and have methods for starting
     and stopping the workload these modules contains."""
@@ -402,7 +405,7 @@ and will also be given to the instantiated objects during module import."""
         "Imports a module exported by ModuleContainer::ExportModule()"
         return self.__modules.ImportModule(module)
 
-    def _InstantiateModule(self, modname, modcfg, modroot = None):
+    def _InstantiateModule(self, modname, modcfg, modroot=None):
         "Imports a module and returns an instantiated object from the module"
         return self.__modules.InstantiateModule(modname, modcfg, modroot)
 
@@ -513,7 +516,7 @@ start their workloads yet"""
         self.__timestamps['stop'] = datetime.now()
 
 
-    def WaitForCompletion(self, wtime = None):
+    def WaitForCompletion(self, wtime=None):
         """Waits for the running modules to complete their running"""
 
         self._logger.log(Log.INFO, "Waiting for %s modules to complete" % self._module_type)
