@@ -28,22 +28,22 @@ import os.path
 import glob
 
 def sysread(path, obj):
-    fp = open(os.path.join(path,obj), "r")
+    fp = open(os.path.join(path, obj), "r")
     return fp.readline().strip()
 
 #
 # class to provide access to a list of cpus
 #
 
-class CpuList(object):
+class CpuList:
     "Object that represents a group of system cpus"
 
     cpupath = '/sys/devices/system/cpu'
 
     def __init__(self, cpulist):
-        if type(cpulist) is list:
+        if isinstance(cpulist, list):
             self.cpulist = cpulist
-        elif type(cpulist) is str:
+        elif isinstance(cpulist, str):
             self.cpulist = self.__expand_cpulist(cpulist)
         self.cpulist = self.online_cpulist(self.cpulist)
         self.cpulist.sort()
@@ -66,7 +66,7 @@ class CpuList(object):
     # that steps by one
     def __longest_sequence(self, cpulist):
         lim = len(cpulist)
-        for idx,val in enumerate(cpulist):
+        for idx, _ in enumerate(cpulist):
             if idx+1 == lim:
                 break
             if int(cpulist[idx+1]) != (int(cpulist[idx])+1):
@@ -107,7 +107,7 @@ class CpuList(object):
             else:
                 a = int(part)
                 result.append(a)
-        return [ int(i) for i in list(set(result)) ]
+        return [int(i) for i in list(set(result))]
 
     # returns the list of cpus tracked
     def getcpulist(self):
@@ -117,7 +117,7 @@ class CpuList(object):
     def is_online(self, n):
         if n not in self.cpulist:
             raise RuntimeError("invalid cpu number %d" % n)
-        path = os.path.join(CpuList.cpupath,'cpu%d' % n)
+        path = os.path.join(CpuList.cpupath, 'cpu%d' % n)
         # Some hardware doesn't allow cpu0 to be turned off
         if not os.path.exists(path + '/online') and n == 0:
             return True
@@ -141,7 +141,7 @@ class CpuList(object):
 # class to abstract access to NUMA nodes in /sys filesystem
 #
 
-class NumaNode(object):
+class NumaNode:
     "class representing a system NUMA node"
 
     # constructor argument is the full path to the /sys node file
@@ -172,8 +172,8 @@ class NumaNode(object):
         self.meminfo = {}
         for l in open(os.path.join(self.path, "meminfo"), "r"):
             elements = l.split()
-            key=elements[2][0:-1]
-            val=int(elements[3])
+            key = elements[2][0:-1]
+            val = int(elements[3])
             if len(elements) == 5 and elements[4] == "kB":
                 val *= 1024
             self.meminfo[key] = val
@@ -189,7 +189,7 @@ class NumaNode(object):
 #
 # Class to abstract the system topology of numa nodes and cpus
 #
-class SysTopology(object):
+class SysTopology:
     "Object that represents the system's NUMA-node/cpu topology"
 
     cpupath = '/sys/devices/system/cpu'
