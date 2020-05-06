@@ -125,7 +125,7 @@ class RtEval(rtevalReport):
         print("rteval time remaining: %d days, %d hours, %d minutes, %d seconds" % (days, hours, minutes, r))
 
 
-    def Prepare(self, onlyload = False):
+    def Prepare(self, onlyload=False):
         builddir = os.path.join(self.__rtevcfg.workdir, 'rteval-build')
         if not os.path.isdir(builddir): os.mkdir(builddir)
 
@@ -165,7 +165,7 @@ class RtEval(rtevalReport):
         measure_start = None
         (with_loads, run_parallel) = measure_profile.GetProfile()
         self.__logger.log(Log.INFO, "Using measurement profile [loads: %s  parallel: %s]" % (
-                with_loads, run_parallel))
+            with_loads, run_parallel))
         try:
             nthreads = 0
 
