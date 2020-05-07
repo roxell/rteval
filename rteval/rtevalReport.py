@@ -29,7 +29,7 @@ from datetime import datetime
 from . import xmlout
 
 
-class rtevalReport(object):
+class rtevalReport:
     def __init__(self, rtev_version, installdir, annotate):
         self.__version = rtev_version
         self.__installdir = installdir
@@ -48,10 +48,14 @@ class rtevalReport(object):
 
         duration = datetime.now() - measure_start
         seconds = duration.seconds
+
         hours = int(seconds / 3600)
-        if hours: seconds -= (hours * 3600)
+        if hours:
+            seconds -= (hours * 3600)
+
         minutes = int(seconds / 60)
-        if minutes: seconds -= (minutes * 60)
+        if minutes:
+            seconds -= (minutes * 60)
 
         # Start new XML report
         self.__xmlreport = xmlout.XMLOut('rteval', self.__version)
@@ -138,4 +142,3 @@ class rtevalReport(object):
             t.close()
         except:
             os.chdir(cwd)
-
