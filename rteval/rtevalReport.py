@@ -130,7 +130,7 @@ class rtevalReport:
 
     def _tar_results(self):
         if not os.path.isdir(self.__reportdir):
-            raise RuntimeError("no such directory: %s" % reportdir)
+            raise RuntimeError("no such directory: %s" % self.__reportdir)
 
         dirname = os.path.dirname(self.__reportdir)
         rptdir = os.path.basename(self.__reportdir)
