@@ -30,7 +30,8 @@
 #   including keys needed to generate an equivalently functional executable
 #   are deemed to be part of the source code.
 #
-import os, sys
+import os
+import sys
 import configparser
 from .Log import Log
 from .systopology import SysTopology
@@ -47,7 +48,7 @@ def get_user_name():
     return name
 
 def default_config_search(relative_path, verifdef=os.path.isdir):
-    ConfigDirectories=[
+    ConfigDirectories = [
         os.path.join(os.path.expanduser("~" + get_user_name()), '.rteval'),
         '/etc/rteval',
         '/usr/share/rteval'
@@ -67,7 +68,7 @@ def default_config_search(relative_path, verifdef=os.path.isdir):
 
 
 # HACK: A temporary hack to try to figure out where the install dir is.
-typical_install_paths = ('/usr/bin','/usr/local/bin')
+typical_install_paths = ('/usr/bin', '/usr/local/bin')
 try:
     if typical_install_paths.index(os.path.dirname(os.path.abspath(sys.argv[0]))):
         installdir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -98,9 +99,9 @@ default_config = {
     }
 
 
-class rtevalCfgSection(object):
+class rtevalCfgSection:
     def __init__(self, section_cfg):
-        if type(section_cfg) is not dict:
+        if not isinstance(section_cfg, dict):
             raise TypeError('section_cfg argument is not a dict variable')
 
         self.__dict__['_rtevalCfgSection__cfgdata'] = section_cfg
@@ -109,9 +110,9 @@ class rtevalCfgSection(object):
 
     def __str__(self):
         "Simple method for dumping config when object is used as a string"
-        if len(self.__cfgdata) == 0:
+        if not self.__cfgdata:
             return "# empty"
-        return "\n".join(["%s: %s" % (k,v) for k,v in list(self.__cfgdata.items())]) + "\n"
+        return "\n".join(["%s: %s" % (k, v) for k, v in list(self.__cfgdata.items())]) + "\n"
 
 
     def __setattr__(self, key, val):
@@ -168,7 +169,7 @@ class rtevalCfgSection(object):
 
 
     def update(self, newdict):
-        if type(newdict) is not dict:
+        if not isinstance(newdict, dict):
             raise TypeError('update() method expects a dict as argument')
 
         for key, val in newdict.items():
@@ -183,7 +184,7 @@ class rtevalCfgSection(object):
 class rtevalConfig(object):
     "Config parser for rteval"
 
-    def __init__(self, initvars = None, logger = None):
+    def __init__(self, initvars=None, logger=None):
         self.__config_data = {}
         self.__config_files = []
         self.__logger = logger
@@ -239,7 +240,7 @@ class rtevalConfig(object):
         raise RuntimeError("Unable to find configfile")
 
 
-    def Load(self, fname = None, append = False):
+    def Load(self, fname=None, append=False):
         "read and parse the configfile"
 
         try:
@@ -265,7 +266,7 @@ class rtevalConfig(object):
         # copy the section data into the __config_data dictionary
         for s in ini.sections():
             cfg = {}
-            for (k,v) in ini.items(s):
+            for (k, v) in ini.items(s):
                 cfg[k] = v.split('#')[0].strip()
 
             self.__update_section(s, cfg)
@@ -285,7 +286,7 @@ class rtevalConfig(object):
         "Parse through the command line options and update the appropriate config settings"
 
         last_sect = None
-        for sk,v in sorted(vars(parser.values).items()):
+        for sk, v in sorted(vars(parser.values).items()):
             # optparse key template: {sectionname}___{key}
             k = sk.split('___')
             if k[0] != last_sect:
