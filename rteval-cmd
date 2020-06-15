@@ -221,7 +221,8 @@ if __name__ == '__main__':
         if not config.HasSection('loads'):
             config.AppendConfig('loads', {
                 'kcompile'   : 'module',
-                'hackbench'  : 'module'})
+                'hackbench'  : 'module',
+                'stressng'   : 'module'})
 
             if not config.HasSection('measurement'):
                 config.AppendConfig('measurement', {
