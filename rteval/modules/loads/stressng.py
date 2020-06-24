@@ -21,7 +21,7 @@ class Stressng(CommandLineLoad):
         self.__out = None
         self.__err = None
         self.__nullfp = None
-        self.cmd = None
+        self.args = None
         " Only run this module if the user specifies an option "
         if self.cfg.option is not None:
             self._donotrun = False
@@ -47,12 +47,12 @@ class Stressng(CommandLineLoad):
             self.__out = self.__err = self.__nullfp
 
         # stress-ng is only run if the user specifies an option
-        self.cmd = ['stress-ng']
-        self.cmd.append('--%s' % str(self.cfg.option))
+        self.args = ['stress-ng']
+        self.args.append('--%s' % str(self.cfg.option))
         if self.cfg.arg is not None:
-            self.cmd.append(self.cfg.arg)
+            self.args.append(self.cfg.arg)
         if self.cfg.timeout is not None:
-            self.cmd.append('--timeout %s' % str(self.cfg.timeout))
+            self.args.append('--timeout %s' % str(self.cfg.timeout))
 
         systop = SysTopology()
         # get the number of nodes
@@ -74,7 +74,7 @@ class Stressng(CommandLineLoad):
         if self.cpulist:
             for node in nodes:
                 cpulist = ",".join([str(n) for n in cpus[node]])
-                self.cmd.append('--taskset %s' % cpulist)
+                self.args.append('--taskset %s' % cpulist)
 
     def _WorkloadTask(self):
         """ Kick of the workload here """
@@ -82,13 +82,14 @@ class Stressng(CommandLineLoad):
             # Only start the task once
             return
 
-        self._log(Log.DEBUG, "starting with %s" % " ".join(self.cmd))
+        self._log(Log.DEBUG, "starting with %s" % " ".join(self.args))
         try:
-            self.process = subprocess.Popen(self.cmd,
+            self.process = subprocess.Popen(self.args,
                                             stdout=self.__out,
                                             stderr=self.__err,
                                             stdin=self.__in)
             self.started = True
+            self.jobs = 1
             self._log(Log.DEBUG, "running")
         except OSError:
             self._log(Log.DEBUG, "Failed to run")
