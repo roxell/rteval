@@ -103,7 +103,7 @@ class XMLOut(object):
 
     def __add_attributes(self, node, attr):
         if attr is not None:
-            for k, v in attr.items():
+            for k, v in list(attr.items()):
                 node.newProp(k, self.__encode(v))
 
 
@@ -121,7 +121,7 @@ class XMLOut(object):
                 n = libxml2.newText(self.__encode(v))
                 node.addChild(n)
             elif t is dict:
-                for (key, val) in data.items():
+                for (key, val) in list(data.items()):
                     node2 = libxml2.newNode(self.__encode(self.parsedata_prefix + key, True))
                     self.__parseToXML(node2, val)
                     node.addChild(node2)
