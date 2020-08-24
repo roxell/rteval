@@ -33,8 +33,8 @@
 import os
 import sys
 import configparser
-from .Log import Log
-from .systopology import SysTopology
+from rteval.Log import Log
+from rteval.systopology import SysTopology
 
 def get_user_name():
     name = os.getenv('SUDO_USER')
