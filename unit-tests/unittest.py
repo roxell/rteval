@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (c) 2010 Red Hat, Inc. All rights reserved. This copyrighted material
 # is made available to anyone wishing to use, modify, copy, or
 # redistribute it subject to the terms and conditions of the GNU General
@@ -119,8 +119,8 @@ if __name__ == '__main__':
 
     # Load defined modules  ('subdir','import name')
     tests.LoadModules((
-            ('rteval','cputopology'),
-            ('rteval','dmi'),
+            ('rteval/sysinfo','cputopology'),
+            ('rteval/sysinfo','dmi'),
             ('rteval','rtevalConfig'),
             ('rteval','xmlout'),
             ('server','unittest')
