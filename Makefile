@@ -125,4 +125,14 @@ help:
 	@echo "        install:   install rteval locally"
 	@echo "        clean:     cleanup generated files"
 	@echo "        sysreport: do a short testrun and generate sysreport data"
+	@echo "        tags:      generate a ctags file"
+	@echo "        cleantags: remove the ctags file"
 	@echo ""
+
+.PHONY: tags
+tags:
+	ctags -R --extra=+fq --python-kinds=+cfmvi rteval-cmd rteval
+
+.PHONY: cleantags
+cleantags:
+	rm -f tags
