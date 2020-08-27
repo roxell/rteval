@@ -69,8 +69,10 @@ def cpuinfo():
     info = {}
     for l in open('/proc/cpuinfo'):
         l = l.strip()
-        if not l: continue
-        key,val = [ i.strip() for i in l.split(':')]
+        if not l:
+            continue
+        # Split a maximum of one time. In case a model name has ':' in it
+        key, val = [i.strip() for i in l.split(':', 1)]
         if key == 'processor':
             core = val
             info[core] = {}
