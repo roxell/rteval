@@ -23,19 +23,21 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, libxml2
-from rteval.Log import Log
+import sys
 from glob import glob
-from .kernel import KernelInfo
-from .services import SystemServices
-from .cputopology import CPUtopology
-from .memory import MemoryInfo
-from .osinfo import OSInfo
-from .network import NetworkInfo
-from .cmdline import cmdlineInfo
-from . import dmi
+import libxml2
+from rteval.Log import Log
+from rteval.sysinfo.kernel import KernelInfo
+from rteval.sysinfo.services import SystemServices
+from rteval.sysinfo.cputopology import CPUtopology
+from rteval.sysinfo.memory import MemoryInfo
+from rteval.sysinfo.osinfo import OSInfo
+from rteval.sysinfo.network import NetworkInfo
+from rteval.sysinfo.cmdline import cmdlineInfo
+import rteval.sysinfo.dmi as dmi
 
-class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology, MemoryInfo, OSInfo, NetworkInfo, cmdlineInfo):
+class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology,
+                 MemoryInfo, OSInfo, NetworkInfo, cmdlineInfo):
     def __init__(self, config, logger=None):
         self.__logger = logger
         KernelInfo.__init__(self, logger=logger)
@@ -53,7 +55,7 @@ class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology, MemoryInf
 
 
     def MakeReport(self):
-        report_n = libxml2.newNode("SystemInfo");
+        report_n = libxml2.newNode("SystemInfo")
         report_n.newProp("version", "1.0")
 
         # Populate the report
@@ -70,7 +72,7 @@ class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology, MemoryInf
 
 
 if __name__ == "__main__":
-    from rtevalConfig import rtevalConfig
+    from rteval.rtevalConfig import rtevalConfig
     l = Log()
     l.SetLogVerbosity(Log.INFO|Log.DEBUG)
     cfg = rtevalConfig(logger=l)
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     print("\tKernel threads:")
     for (p, i) in list(si.kernel_get_kthreads().items()):
         print("\t\t%-30.30s pid: %-5.5s policy: %-7.7s prio: %-3.3s" % (
-            i["name"]+":", p, i["policy"], i["priority"]
+            str(i["name"])+":", p, i["policy"], i["priority"]
             ))
 
     print("\n\tCPU topology info - cores: %i  online: %i  sockets: %i" % (
