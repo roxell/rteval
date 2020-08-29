@@ -23,7 +23,8 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os, libxml2
+import os
+import libxml2
 
 class CPUtopology:
     "Retrieves an overview over the installed CPU cores and the system topology"
@@ -64,8 +65,8 @@ class CPUtopology:
                 for cpudir in os.listdir(os.path.join(self.sysdir, dirname)):
                     # Check if it is a proper CPU directory which should contain an 'online' file
                     # except on 'cpu0' which cannot be offline'd
-                    if (cpudir.find('online',0) == 0) or dirname == 'cpu0':
-                        cpu_n = self.__cputop_n.newChild(None,'cpu',None)
+                    if (cpudir.find('online', 0) == 0) or dirname == 'cpu0':
+                        cpu_n = self.__cputop_n.newChild(None, 'cpu', None)
                         cpu_n.newProp('name', dirname)
                         online = (dirname == 'cpu0') and 1 or self.__read(dirname, 'online')
                         cpu_n.newProp('online', str(online))
@@ -74,17 +75,18 @@ class CPUtopology:
                         # Check if the CPU is online, if it is, grab more info available
                         if online == 1:
                             self.__online_cores += 1
-                            cpu_n.newProp('core_id',
-                                          str(self.__read(os.path.join(dirname, 'topology'), 'core_id')))
+                            cpu_n.newProp('core_id', \
+                                str(self.__read(os.path.join(dirname, \
+                                'topology'), 'core_id')))
                             phys_pkg_id = self.__read(os.path.join(dirname, 'topology'),
                                                       'physical_package_id')
                             cpu_n.newProp('physical_package_id', str(phys_pkg_id))
                             cpusockets.append(phys_pkg_id)
-                        break;
+                        break
 
         # Count unique CPU sockets
         lastsock = None
-        sockcnt  = 0
+        sockcnt = 0
         cpusockets.sort()
         for sck in cpusockets:
             if sck != lastsock:
@@ -103,7 +105,6 @@ class CPUtopology:
     def MakeReport(self):
         return self.__cputop_n
 
-
     def cpu_getCores(self, only_online):
         return only_online and self.__online_cores or self.__cpu_cores
 
@@ -120,7 +121,7 @@ def unit_test(rootdir):
         print(" ---- XML Result ---- ")
         x = libxml2.newDoc('1.0')
         x.setRootElement(n)
-        x.saveFormatFileEnc('-','UTF-8',1)
+        x.saveFormatFileEnc('-', 'UTF-8', 1)
 
         print(" ---- getCPUcores() / getCPUscokets() ---- ")
         print("CPU cores: %i (online: %i) - CPU sockets: %i" % (cputop.cpu_getCores(False),
