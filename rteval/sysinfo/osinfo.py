@@ -24,11 +24,14 @@
 #   are deemed to be part of the source code.
 #
 
-import os, shutil, subprocess, libxml2
+import os
+import shutil
+import subprocess
 from glob import glob
+import libxml2
 from rteval.Log import Log
 
-class OSInfo(object):
+class OSInfo:
     def __init__(self, logger):
         self.__logger = logger
 
@@ -67,9 +70,9 @@ class OSInfo(object):
             raise RuntimeError("Can't find sosreport/sysreport")
 
         self.__logger.log(Log.DEBUG, "report tool: %s" % exe)
-        options =  ['-k', 'rpm.rpmva=off',
-                    '--name=rteval',
-                    '--batch']
+        options = ['-k', 'rpm.rpmva=off',
+                   '--name=rteval',
+                   '--batch']
 
         self.__logger.log(Log.INFO, "Generating SOS report")
         self.__logger.log(Log.INFO, "using command %s" % " ".join([exe]+options))
@@ -120,8 +123,8 @@ def unit_test(rootdir):
         print("Testing OSInfo::copy_dmesg('/tmp'): ", end=' ')
         osi.copy_dmesg('/tmp')
         if os.path.isfile("/tmp/dmesg"):
-            md5orig = subprocess.check_output(("md5sum","/var/log/dmesg"))
-            md5copy = subprocess.check_output(("md5sum","/tmp/dmesg"))
+            md5orig = subprocess.check_output(("md5sum", "/var/log/dmesg"))
+            md5copy = subprocess.check_output(("md5sum", "/tmp/dmesg"))
             if md5orig.split(" ")[0] == md5copy.split(" ")[0]:
                 print("PASS")
             else:
