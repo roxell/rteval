@@ -25,13 +25,16 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, subprocess, os, libxml2
+import sys
+import subprocess
+import os
+import libxml2
 from rteval.sysinfo.tools import getcmdpath
 from rteval.Log import Log
 
 
-class KernelInfo(object):
-    def __init__(self, logger = None):
+class KernelInfo:
+    def __init__(self, logger=None):
         self.__logger = logger
 
 
@@ -41,7 +44,7 @@ class KernelInfo(object):
 
 
     def kernel_get_kthreads(self):
-        policies = {'FF':'fifo', 'RR':'rrobin', 'TS':'other', '?':'unknown' }
+        policies = {'FF':'fifo', 'RR':'rrobin', 'TS':'other', '?':'unknown'}
         ret_kthreads = {}
         self.__log(Log.DEBUG, "getting kthread status")
         cmd = '%s -eocommand,pid,policy,rtprio,comm' % getcmdpath('ps')
@@ -55,7 +58,7 @@ class KernelInfo(object):
                 if int(v[0]) > 0 and kcmd.startswith('[') and kcmd.endswith(']'):
 
                     ret_kthreads[v[0]] = {'policy' : policies[bytes.decode(v[1])],
-                                          'priority' : v[2], 'name' : v[3] }
+                                          'priority' : v[2], 'name' : v[3]}
             except ValueError:
                 pass    # Ignore lines which don't have a number in the first row
         return ret_kthreads
@@ -85,9 +88,9 @@ class KernelInfo(object):
         path = '/sys/devices/system/clocksource/clocksource0'
         if not os.path.exists(path):
             raise RuntimeError("Can't find clocksource path in /sys")
-        f = open (os.path.join (path, "current_clocksource"))
+        f = open(os.path.join(path, "current_clocksource"))
         current_clocksource = f.readline().strip()
-        f = open (os.path.join (path, "available_clocksource"))
+        f = open(os.path.join(path, "available_clocksource"))
         available_clocksource = f.readline().strip()
         f.close()
         return (current_clocksource, available_clocksource)
@@ -171,4 +174,3 @@ def unit_test(rootdir):
 
 if __name__ == '__main__':
     unit_test(None)
-
