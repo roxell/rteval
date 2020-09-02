@@ -24,7 +24,8 @@
 #   are deemed to be part of the source code.
 #
 
-import os, tarfile
+import os
+import tarfile
 from datetime import datetime
 from . import xmlout
 
@@ -62,9 +63,9 @@ class rtevalReport:
         self.__xmlreport.NewReport()
 
         self.__xmlreport.openblock('run_info', {'days': duration.days,
-                                 'hours': hours,
-                                 'minutes': minutes,
-                                 'seconds': seconds})
+                                                'hours': hours,
+                                                'minutes': minutes,
+                                                'seconds': seconds})
         self.__xmlreport.taggedvalue('date', self.__start.strftime('%Y-%m-%d'))
         self.__xmlreport.taggedvalue('time', self.__start.strftime('%H:%M:%S'))
         if self.__annotate:
@@ -84,7 +85,7 @@ class rtevalReport:
         self.__xmlreport.close()
 
         # Write the XML to the report directory
-        if self.__xmlfname != None:
+        if self.__xmlfname is not None:
             self.__xmlreport.Write(self.__xmlfname, None)
 
         # Write a text report to stdout as well, using the
@@ -115,11 +116,11 @@ class rtevalReport:
         t = self.__start
         i = 1
         self.__reportdir = os.path.join(workdir,
-                                      t.strftime("rteval-%Y%m%d-"+str(i)))
+                                        t.strftime("rteval-%Y%m%d-"+str(i)))
         while os.path.exists(self.__reportdir):
             i += 1
             self.__reportdir = os.path.join(workdir,
-                                          t.strftime('rteval-%Y%m%d-'+str(i)))
+                                            t.strftime('rteval-%Y%m%d-'+str(i)))
         if not os.path.isdir(self.__reportdir):
             os.mkdir(self.__reportdir)
             os.mkdir(os.path.join(self.__reportdir, "logs"))
