@@ -56,9 +56,9 @@ def default_config_search(relative_path, verifdef=os.path.isdir):
 
     if os.path.dirname(os.path.abspath(__file__)) != '/usr/share/rteval':
         ConfigDirectories = [
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'rteval')
-                ] + ConfigDirectories
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'rteval')
+            ] + ConfigDirectories
 
         for path in ConfigDirectories:
             if verifdef(os.path.join(path, *relative_path)):
@@ -141,15 +141,15 @@ class rtevalCfgSection:
         if not self.__dict__['_rtevalCfgSection__iter_list'] \
                 or len(self.__dict__['_rtevalCfgSection__iter_list']) == 0:
             raise StopIteration
-        else:
+
+        elmt = self.__dict__['_rtevalCfgSection__iter_list'].pop()
+
+        # HACK: This element shouldn't really appear here ... why!??!
+        while (elmt == '_rtevalCfgSection__cfgdata') \
+               and (len(self.__dict__['_rtevalCfgSection__iter_list']) > 0):
             elmt = self.__dict__['_rtevalCfgSection__iter_list'].pop()
 
-            # HACK: This element shouldn't really appear here ... why!??!
-            while (elmt == '_rtevalCfgSection__cfgdata') and \
-                    (len(self.__dict__['_rtevalCfgSection__iter_list']) > 0):
-                elmt = self.__dict__['_rtevalCfgSection__iter_list'].pop()
-
-            return (elmt, self.__cfgdata[elmt])
+        return (elmt, self.__cfgdata[elmt])
 
 
     def has_key(self, key):
@@ -172,7 +172,7 @@ class rtevalCfgSection:
         if not isinstance(newdict, dict):
             raise TypeError('update() method expects a dict as argument')
 
-        for key, val in newdict.items():
+        for key, val in list(newdict.items()):
             self.__cfgdata[key] = val
 
 
@@ -181,7 +181,7 @@ class rtevalCfgSection:
 
 
 
-class rtevalConfig(object):
+class rtevalConfig:
     "Config parser for rteval"
 
     def __init__(self, initvars=None, logger=None):
@@ -199,7 +199,7 @@ class rtevalConfig(object):
 
         # Set the runtime provided init variables
         if initvars:
-            if type(initvars) is not dict:
+            if not isinstance(newdict, dict):
                 raise TypeError('initvars argument is not a dict variable')
 
             for sect, vals in list(initvars.items()):
@@ -271,7 +271,6 @@ class rtevalConfig(object):
 
             self.__update_section(s, cfg)
 
-
         # Register the file as read
         self.__config_files.append(cfgfile)
         return cfgfile
@@ -316,7 +315,7 @@ class rtevalConfig(object):
         try:
             # Return a new object with config settings of a given section
             return self.__config_data[section]
-        except KeyError as err:
+        except KeyError:
             raise KeyError("The section '%s' does not exist in the config file" % section)
 
 
@@ -334,5 +333,4 @@ def unit_test(rootdir):
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(unit_test('..'))
