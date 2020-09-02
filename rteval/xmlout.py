@@ -23,13 +23,11 @@
 #   are deemed to be part of the source code.
 #
 
-import os
 import sys
+import re
+import codecs
 import libxml2
 import lxml.etree
-import codecs
-import re
-
 
 def convert_libxml2_to_lxml_doc(inxml):
     "Converts a libxml2.xmlDoc into a lxml.etree document object"
@@ -42,26 +40,27 @@ def convert_libxml2_to_lxml_doc(inxml):
     del root
     return ret
 
-
-
 def convert_lxml_to_libxml2_nodes(inlxml):
     "Converts a lxml.etree elements tree into a libxml2.xmlNode object"
 
-    if not isinstance(inlxml,lxml.etree._Element) and not isinstance(inlxml, lxml.etree._XSLTResultTree):
+    if not isinstance(inlxml, lxml.etree._Element) \
+            and not isinstance(inlxml, lxml.etree._XSLTResultTree):
         raise TypeError('Function requires an lxml.etree object as input')
 
     return libxml2.parseDoc(bytes.decode(lxml.etree.tostring(inlxml))).getRootElement()
 
-
-
-class XMLOut(object):
+class XMLOut:
     '''Class to create XML output'''
-    def __init__(self, roottag, version, attr = None, encoding='UTF-8'):
+    def __init__(self, roottag, version, attr=None, encoding='UTF-8'):
         self.level = 0
         self.encoding = encoding
         self.rootattr = attr
         self.version = version
-        self.status = 0    # 0 - no report created/loaded, 1 - new report, 2 - loaded report, 3 - XML closed
+        # 0 - no report created/loaded
+        # 1 - new report
+        # 2 - loaded report
+        # 3 - XML closed
+        self.status = 0
         self.tag_trans = self.__setup_tag_trans()
         self.roottag = self.__fixtag(roottag)
         self.xmldoc = None
@@ -86,10 +85,10 @@ class XMLOut(object):
             return str(tagname)
         return tagname.translate(self.tag_trans)
 
-    def __encode(self, value, tagmode = False):
-        if type(value) is str:
+    def __encode(self, value, tagmode=False):
+        if isinstance(value, str):
             val = value
-        elif type(value) is str:
+        elif isinstance(value, str):
             val = str(value)
         else:
             val = str(str(value))
@@ -100,41 +99,39 @@ class XMLOut(object):
 
         return val
 
-
     def __add_attributes(self, node, attr):
         if attr is not None:
             for k, v in list(attr.items()):
                 node.newProp(k, self.__encode(v))
 
-
     def __parseToXML(self, node, data):
-            # All supported variable types needs to be set up
-            # here.  TypeError exception will be raised on
-            # unknown types.
+        # All supported variable types needs to be set up
+        # here.  TypeError exception will be raised on
+        # unknown types.
 
-            t = type(data)
-            if t is str or t is str or t is int or t is float:
-                n = libxml2.newText(self.__encode(data))
-                node.addChild(n)
-            elif t is bool:
-                v = data and "1" or "0"
-                n = libxml2.newText(self.__encode(v))
-                node.addChild(n)
-            elif t is dict:
-                for (key, val) in list(data.items()):
-                    node2 = libxml2.newNode(self.__encode(self.parsedata_prefix + key, True))
-                    self.__parseToXML(node2, val)
-                    node.addChild(node2)
-            elif t is tuple:
-                for v in data:
-                    if type(v) is dict:
-                        self.__parseToXML(node, v)
-                    else:
-                        n = libxml2.newNode(self.tuple_tagname)
-                        self.__parseToXML(n, v)
-                        node.addChild(n)
-            else:
-                raise TypeError("unhandled type (%s) for value '%s'" % (type(data), str(data)))
+        t = type(data)
+        if t is str or t is str or t is int or t is float:
+            n = libxml2.newText(self.__encode(data))
+            node.addChild(n)
+        elif t is bool:
+            v = data and "1" or "0"
+            n = libxml2.newText(self.__encode(v))
+            node.addChild(n)
+        elif t is dict:
+            for (key, val) in list(data.items()):
+                node2 = libxml2.newNode(self.__encode(self.parsedata_prefix + key, True))
+                self.__parseToXML(node2, val)
+                node.addChild(node2)
+        elif t is tuple:
+            for v in data:
+                if isinstance(v, dict):
+                    self.__parseToXML(node, v)
+                else:
+                    n = libxml2.newNode(self.tuple_tagname)
+                    self.__parseToXML(n, v)
+                    node.addChild(n)
+        else:
+            raise TypeError("unhandled type (%s) for value '%s'" % (type(data), str(data)))
 
     def close(self):
         if self.status == 0:
@@ -147,7 +144,6 @@ class XMLOut(object):
         if self.status == 1: # Only set the root node in the doc on created reports (NewReport called)
             self.xmldoc.setRootElement(self.xmlroot)
         self.status = 3
-
 
     def NewReport(self):
         if self.status != 0 and self.status != 3:
@@ -164,8 +160,7 @@ class XMLOut(object):
         self.level = 0
         self.status = 1
 
-
-    def LoadReport(self, filename, validate_version = False):
+    def LoadReport(self, filename, validate_version=False):
         if self.status == 3:
             self.xmldoc.freeDoc() # Free the report from memory if we have one already
 
@@ -192,46 +187,44 @@ class XMLOut(object):
 
         self.status = 2 # Confirm that we have loaded a report from file
 
-
-    def Write(self, filename, xslt = None):
+    def Write(self, filename, xslt=None):
         if self.status != 2 and self.status != 3:
             raise RuntimeError("XMLOut: XML document is not closed")
 
-        if xslt == None:
+        if xslt is None:
             # If no XSLT template is give, write raw XML
             self.xmldoc.saveFormatFileEnc(filename, self.encoding, 1)
             return
+
+        # Load XSLT file and prepare the XSLT parser
+        xsltfile = open(xslt, 'r')
+        xsltdoc = lxml.etree.parse(xsltfile)
+        parser = lxml.etree.XSLT(xsltdoc)
+        xsltfile.close()
+
+        # imitate libxml2's filename interpretation
+        if filename != "-":
+            dstfile = codecs.open(filename, "w", encoding=self.encoding)
         else:
-            # Load XSLT file and prepare the XSLT parser
-            xsltfile = open(xslt, 'r')
-            xsltdoc = lxml.etree.parse(xsltfile)
-            parser = lxml.etree.XSLT(xsltdoc)
-            xsltfile.close()
+            dstfile = sys.stdout
+        #
+        # Parse XML+XSLT and write the result to file
+        #
+        xmldoc = convert_libxml2_to_lxml_doc(self.xmldoc)
+        resdoc = parser(xmldoc)
 
-            # imitate libxml2's filename interpretation
-            if filename != "-":
-                dstfile = codecs.open(filename, "w", encoding=self.encoding)
-            else:
-                dstfile = sys.stdout
-            #
-            # Parse XML+XSLT and write the result to file
-            #
-            xmldoc = convert_libxml2_to_lxml_doc(self.xmldoc)
-            resdoc = parser(xmldoc)
+        #  Write the file with the requested output encoding
+        dstfile.write(bytes.decode(str(resdoc).encode(self.encoding)))
 
-            #  Write the file with the requested output encoding
-            dstfile.write(bytes.decode(str(resdoc).encode(self.encoding)))
+        if dstfile != sys.stdout:
+            dstfile.close()
 
-            if dstfile != sys.stdout:
-                dstfile.close()
-
-            # Clean up
-            del resdoc
-            del xsltdoc
-            del parser
-            del xsltfile
-            del xmldoc
-
+        # Clean up
+        del resdoc
+        del xsltdoc
+        del parser
+        del xsltfile
+        del xmldoc
 
     def GetXMLdocument(self):
         if self.status != 2 and self.status != 3:
@@ -241,7 +234,7 @@ class XMLOut(object):
     def openblock(self, tagname, attributes=None):
         if self.status != 1:
             raise RuntimeError("XMLOut: openblock() cannot be called before NewReport() is called")
-        ntag = libxml2.newNode(self.__fixtag(tagname));
+        ntag = libxml2.newNode(self.__fixtag(tagname))
         self.__add_attributes(ntag, attributes)
         self.currtag.addChild(ntag)
         self.currtag = ntag
@@ -264,8 +257,7 @@ class XMLOut(object):
         self.__add_attributes(ntag, attributes)
         return ntag
 
-
-    def ParseData(self, tagname, data, attributes=None, tuple_tagname="tuples", prefix = ""):
+    def ParseData(self, tagname, data, attributes=None, tuple_tagname="tuples", prefix=""):
         if self.status != 1:
             raise RuntimeError("XMLOut: taggedvalue() cannot be called before NewReport() is called")
 
@@ -283,7 +275,6 @@ class XMLOut(object):
             raise ValueError("Input value is not a libxml2.xmlNode")
 
         return self.currtag.addChild(nodes)
-
 
 def unit_test(rootdir):
     try:
@@ -303,9 +294,9 @@ def unit_test(rootdir):
         x.taggedvalue('memory_size', 1024*1024*2)
         x.closeblock()
         x.openblock('loads', {'load_average': 3.29})
-        x.taggedvalue('command_line','./load/loader --extreme --ultimate --threads 4096', 
+        x.taggedvalue('command_line', './load/loader --extreme --ultimate --threads 4096',
                       {'name': 'heavyloader'})
-        x.taggedvalue('command_line','dd if=/dev/zero of=/dev/null', {'name': 'lightloader'})
+        x.taggedvalue('command_line', 'dd if=/dev/zero of=/dev/null', {'name': 'lightloader'})
         x.closeblock()
         x.close()
         print("------------- XML OUTPUT ----------------------------")
@@ -317,7 +308,7 @@ def unit_test(rootdir):
         del x
 
         print("------------- LOAD XML FROM FILE -----------------------------")
-        x = XMLOut('rteval','UNIT-TEST', None, 'UTF-8')
+        x = XMLOut('rteval', 'UNIT-TEST', None, 'UTF-8')
         x.LoadReport("/tmp/xmlout-test.xml", True)
         print("------------- LOADED XML DATA --------------------------------")
         x.Write("-")
@@ -331,20 +322,19 @@ def unit_test(rootdir):
         x.ParseData("ParseTest", "test string", {"type": "simple_string"})
         x.ParseData("ParseTest", 1234, {"type": "integer"})
         x.ParseData("ParseTest", 39.3904, {"type": "float"})
-        x.ParseData("ParseTest", (11,22,33,44,55), {"type": "tuples"})
-        x.ParseData("ParseTest", (99,88,77), {"type": "tuples", "comment": "Changed default tuple tag name"},
-                    "int_values")
+        x.ParseData("ParseTest", (11, 22, 33, 44, 55), {"type": "tuples"})
+        x.ParseData("ParseTest", (99, 88, 77), {"type": "tuples", "comment": "Changed default tuple tag name"}, "int_values")
         test = {"var1": "value 1",
-                "var2": { "varA1": 1,
-                          "pi": 3.1415926,
-                          "varA3": (1,
-                                    2,
-                                    {"test1": "val1"},
-                                    (4.1,4.2,4.3),
-                                    5),
-                          "varA4": {'another_level': True,
-                                    'another_value': "blabla"}
-                          },
+                "var2": {"varA1": 1,
+                         "pi": 3.1415926,
+                         "varA3": (1,
+                                   2,
+                                   {"test1": "val1"},
+                                   (4.1, 4.2, 4.3),
+                                   5),
+                         "varA4": {'another_level': True,
+                                   'another_value': "blabla"}
+                         },
                 "utf8 data": 'æøå',
                 "løpe": True}
         x.ParseData("ParseTest", test, {"type": "dict"}, prefix="test ")
@@ -357,4 +347,3 @@ def unit_test(rootdir):
 
 if __name__ == '__main__':
     sys.exit(unit_test('..'))
-
