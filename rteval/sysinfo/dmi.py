@@ -25,8 +25,10 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os
-import libxml2, lxml.etree
+import sys
+import os
+import libxml2
+import lxml.etree
 from rteval.Log import Log
 from rteval import xmlout
 from rteval import rtevalConfig
@@ -34,17 +36,17 @@ from rteval import rtevalConfig
 try:
     import dmidecode
     dmidecode_loaded = True
-except:
+except ModuleNotFoundError:
     dmidecode_loaded = False
-    pass
 
 def ProcessWarnings():
+    """ Process Warnings from dmidecode """
 
     if not hasattr(dmidecode, 'get_warnings'):
         return
 
     warnings = dmidecode.get_warnings()
-    if warnings == None:
+    if warnings is None:
         return
 
     for warnline in warnings.split('\n'):
@@ -61,9 +63,10 @@ def ProcessWarnings():
     dmidecode.clear_warnings()
 
 
-class DMIinfo(object):
+class DMIinfo:
     '''class used to obtain DMI info via python-dmidecode'''
 
+    # TODO: Remove unnecessary config
     def __init__(self, config, logger):
         self.__version = '0.5'
 
@@ -76,7 +79,6 @@ class DMIinfo(object):
         self.__dmixml = dmidecode.dmidecodeXML()
 
         self.__xsltparser = self.__load_xslt('rteval_dmi.xsl')
-
 
     def __load_xslt(self, fname):
         xsltfile = None
@@ -91,8 +93,7 @@ class DMIinfo(object):
             xsltfile.close()
             return ret
 
-        raise RuntimeError('Could not locate XSLT template for DMI data (%s)' % (self.sharedir + '/' + fname))
-
+        raise RuntimeError(f'Could not locate XSLT template for DMI data ({fname})')
 
     def MakeReport(self):
         rep_n = libxml2.newNode("DMIinfo")
@@ -108,12 +109,10 @@ class DMIinfo(object):
             rep_n.addChild(dmi_n)
         return rep_n
 
-
-
 def unit_test(rootdir):
-    from pprint import pprint
+    """ unit_test for dmi.py, looks a little crufty! """
 
-    class unittest_ConfigDummy(object):
+    class UnittestConfigDummy:
         def __init__(self, rootdir):
             self.config = {'installdir': '/usr/share/rteval'}
             self.__update_vars()
@@ -130,7 +129,7 @@ def unit_test(rootdir):
 
         log = Log()
         log.SetLogVerbosity(Log.DEBUG|Log.INFO)
-        cfg = unittest_ConfigDummy(rootdir)
+        cfg = UnittestConfigDummy(rootdir)
         d = DMIinfo(cfg, log)
         dx = d.MakeReport()
         x = libxml2.newDoc("1.0")
