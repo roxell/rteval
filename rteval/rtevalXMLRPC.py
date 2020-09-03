@@ -24,14 +24,16 @@
 #   are deemed to be part of the source code.
 #
 
-import socket, time, xmlrpc.client
+import socket
+import time
+import xmlrpc.client
 from .rtevalclient import rtevalclient
 from .Log import Log
 
-class rtevalXMLRPC(object):
-    def __init__(self, host, logger, mailer = None):
+class rtevalXMLRPC:
+    def __init__(self, host, logger, mailer=None):
         self.__host = host
-        self.__url= "http://%s/rteval/API1/" % self.__host
+        self.__url = "http://%s/rteval/API1/" % self.__host
         self.__logger = logger
         self.__mailer = mailer
         self.__client = rtevalclient.rtevalclient(self.__url)
@@ -50,12 +52,10 @@ class rtevalXMLRPC(object):
                 ping_success = True
             except xmlrpc.client.ProtocolError:
                 # Server do not support Hello(), but is reachable
-                self.__logger.log(Log.INFO, "Got XML-RPC connection with %s but it did not support Hello()"
-                                  % self.__host)
+                self.__logger.log(Log.INFO, "Got XML-RPC connection with %s but it did not support Hello()" % self.__host)
                 res = None
             except socket.error as err:
-                self.__logger.log(Log.INFO, "Could not establish XML-RPC contact with %s\n%s"
-                                  % (self.__host, str(err)))
+                self.__logger.log(Log.INFO, "Could not establish XML-RPC contact with %s\n%s" % (self.__host, str(err)))
 
                 # Do attempts handling
                 attempt += 1
@@ -63,8 +63,7 @@ class rtevalXMLRPC(object):
                     break # To avoid sleeping before we abort
 
                 if (self.__mailer is not None) and (not warning_sent):
-                    self.__mailer.SendMessage("[RTEVAL:WARNING] Failed to ping XML-RPC server",
-                                            "Server %s did not respond." % self.__host)
+                    self.__mailer.SendMessage("[RTEVAL:WARNING] Failed to ping XML-RPC server", "Server %s did not respond." % self.__host)
                     warning_sent = True
 
                 print("Failed pinging XML-RPC server.  Doing another attempt(%i) " % attempt)
@@ -72,8 +71,7 @@ class rtevalXMLRPC(object):
                 ping_success = False
 
         if res:
-            self.__logger.log(Log.INFO, "Verified XML-RPC connection with %s (XML-RPC API version: %i)"
-                              % (res["server"], res["APIversion"]))
+            self.__logger.log(Log.INFO, "Verified XML-RPC connection with %s (XML-RPC API version: %i)" % (res["server"], res["APIversion"]))
             self.__logger.log(Log.DEBUG, "Recieved greeting: %s" % res["greeting"])
 
         return ping_success
@@ -110,7 +108,7 @@ class rtevalXMLRPC(object):
                 raise err
 
 
-        if (self.__mailer is not None):
+        if self.__mailer is not None:
             # Send final result messages
             if exitcode == 2:
                 self.__mailer.SendMessage("[RTEVAL:FAILURE] Failed to submit report to XML-RPC server",
@@ -122,4 +120,3 @@ class rtevalXMLRPC(object):
                                           % self.__host)
 
         return exitcode
-
