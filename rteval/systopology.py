@@ -23,11 +23,12 @@
 #   are deemed to be part of the source code.
 #
 
-import os, sys
+import os
 import os.path
 import glob
 
 def sysread(path, obj):
+    """ Helper function for reading system files """
     fp = open(os.path.join(path, obj), "r")
     return fp.readline().strip()
 
@@ -57,14 +58,16 @@ class CpuList:
     def __len__(self):
         return len(self.cpulist)
 
-    def online_file_exists(self):
+    @staticmethod
+    def online_file_exists():
+        """ Check whether machine / kernel is configured with online file """
         if os.path.exists('/sys/devices/system/cpu/cpu1/online'):
             return True
         return False
 
-    # return the index of the last element of a sequence
-    # that steps by one
-    def __longest_sequence(self, cpulist):
+    @staticmethod
+    def __longest_sequence(cpulist):
+        """ return index of last element of a sequence that steps by one """
         lim = len(cpulist)
         for idx, _ in enumerate(cpulist):
             if idx+1 == lim:
@@ -73,11 +76,10 @@ class CpuList:
                 return idx
         return lim - 1
 
-    #
-    # collapse a list of cpu numbers into a string range
-    # of cpus (e.g. 0-5, 7, 9)
-    #
     def __collapse_cpulist(self, cpulist):
+        """ Collapse a list of cpu numbers into a string range
+        of cpus (e.g. 0-5, 7, 9)
+        """
         if len(cpulist) == 0:
             return ""
         idx = self.__longest_sequence(cpulist)
@@ -94,10 +96,11 @@ class CpuList:
             return seq
         return ",".join((seq, rest))
 
-    # expand a string range into a list
-    # don't error check against online cpus
-    def __expand_cpulist(self, cpulist):
-        '''expand a range string into an array of cpu numbers'''
+    @staticmethod
+    def __expand_cpulist(cpulist):
+        """ expand a range string into an array of cpu numbers
+        don't error check against online cpus
+        """
         result = []
         for part in cpulist.split(','):
             if '-' in part:
@@ -109,23 +112,24 @@ class CpuList:
                 result.append(a)
         return [int(i) for i in list(set(result))]
 
-    # returns the list of cpus tracked
     def getcpulist(self):
+        """ return the list of cpus tracked """
         return self.cpulist
 
-    # check whether cpu n is online
     def is_online(self, n):
+        """ check whether cpu n is online """
         if n not in self.cpulist:
             raise RuntimeError("invalid cpu number %d" % n)
         path = os.path.join(CpuList.cpupath, 'cpu%d' % n)
+
         # Some hardware doesn't allow cpu0 to be turned off
         if not os.path.exists(path + '/online') and n == 0:
             return True
-        else:
-            return sysread(path, "online") == "1"
 
-    # Given a cpulist, return a cpulist of online cpus
+        return sysread(path, "online") == "1"
+
     def online_cpulist(self, cpulist):
+        """ Given a cpulist, return a cpulist of online cpus """
         # This only works if the sys online files exist
         if not self.online_file_exists():
             return cpulist
@@ -144,31 +148,32 @@ class CpuList:
 class NumaNode:
     "class representing a system NUMA node"
 
-    # constructor argument is the full path to the /sys node file
-    # e.g. /sys/devices/system/node/node0
     def __init__(self, path):
+        """ constructor argument is the full path to the /sys node file
+        e.g. /sys/devices/system/node/node0
+        """
         self.path = path
         self.nodeid = int(os.path.basename(path)[4:].strip())
         self.cpus = CpuList(sysread(self.path, "cpulist"))
         self.getmeminfo()
 
-    # function for the 'in' operator
     def __contains__(self, cpu):
+        """ function for the 'in' operator """
         return cpu in self.cpus
 
-    # allow the 'len' builtin
     def __len__(self):
+        """ allow the 'len' builtin """
         return len(self.cpus)
 
-    # string representation of the cpus for this node
     def __str__(self):
+        """ string representation of the cpus for this node """
         return self.getcpustr()
 
     def __int__(self):
         return self.nodeid
 
-    # read info about memory attached to this node
     def getmeminfo(self):
+        """ read info about memory attached to this node """
         self.meminfo = {}
         for l in open(os.path.join(self.path, "meminfo"), "r"):
             elements = l.split()
@@ -178,12 +183,12 @@ class NumaNode:
                 val *= 1024
             self.meminfo[key] = val
 
-    # return list of cpus for this node as a string
     def getcpustr(self):
+        """ return list of cpus for this node as a string """
         return str(self.cpus)
 
-    # return list of cpus for this node
     def getcpulist(self):
+        """ return list of cpus for this node """
         return self.cpus.getcpulist()
 
 #
@@ -198,6 +203,7 @@ class SysTopology:
     def __init__(self):
         self.nodes = {}
         self.getinfo()
+        self.current = 0
 
     def __len__(self):
         return len(list(self.nodes.keys()))
@@ -207,24 +213,23 @@ class SysTopology:
         s += " (%d cores per node)" % (len(self.nodes[list(self.nodes.keys())[0]]))
         return s
 
-    # inplement the 'in' function
     def __contains__(self, node):
+        """ inplement the 'in' function """
         for n in self.nodes:
             if self.nodes[n].nodeid == node:
                 return True
         return False
 
-    # allow indexing for the nodes
     def __getitem__(self, key):
+        """ allow indexing for the nodes """
         return self.nodes[key]
 
-    # allow iteration over the cpus for the node
     def __iter__(self):
-        self.current = 0
+        """ allow iteration over the cpus for the node """
         return self
 
-    # iterator function
     def __next__(self):
+        """ iterator function """
         if self.current >= len(self.nodes):
             raise StopIteration
         n = self.nodes[self.current]
@@ -247,7 +252,6 @@ class SysTopology:
         return self.nodes[node].getcpulist()
 
 
-
 if __name__ == "__main__":
 
     def unit_test():
@@ -259,5 +263,10 @@ if __name__ == "__main__":
         print("system has numa node 0: %s" % (0 in s))
         print("system has numa node 2: %s" % (2 in s))
         print("system has numa node 24: %s" % (24 in s))
+
+        cpus = {}
+        for node in s.getnodes():
+            cpus[node] = s.getcpus(int(node))
+        print(f'cpus = {cpus}')
 
     unit_test()
