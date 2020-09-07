@@ -41,7 +41,7 @@ class rtevalRuntimeError(RuntimeError):
 
 
 class rtevalModulePrototype(threading.Thread):
-    "Prototype class for rteval modules - must be inherited by the real module"
+    """ Prototype rteval modules class - to be inherited by the real module """
 
     def __init__(self, modtype, name, logger=None):
         if logger and not isinstance(logger, Log):
@@ -63,63 +63,64 @@ class rtevalModulePrototype(threading.Thread):
 
 
     def _log(self, logtype, msg):
-        "Common log function for rteval modules"
+        """ Common log function for rteval modules """
         if self.__logger:
             self.__logger.log(logtype, "[%s] %s" % (self._name, msg))
 
 
     def isReady(self):
-        "Returns a boolean if the module is ready to run"
+        """ Returns a boolean if the module is ready to run """
         if self._donotrun:
             return True
         return self.__ready
 
 
     def _setReady(self, state=True):
-        "Sets the ready flag for the module"
+        """ Sets the ready flag for the module """
         self.__ready = state
 
 
     def hadRuntimeError(self):
-        "Returns a boolean if the module had a RuntimeError"
+        """ Returns a boolean if the module had a RuntimeError """
         return self.__runtimeError
 
 
     def _setRuntimeError(self, state=True):
-        "Sets the runtimeError flag for the module"
+        """ Sets the runtimeError flag for the module """
         self.__runtimeError = state
 
 
     def setStart(self):
-        "Sets the start event state"
+        """ Sets the start event state """
         self.__events["start"].set()
         self.__timestamps["start_set"] = datetime.now()
 
 
     def shouldStart(self):
-        "Returns the start event state - indicating the module can start"
+        """Returns the start event state - indicating the module can start """
         return self.__events["start"].isSet()
 
 
     def setStop(self):
-        "Sets the stop event state"
+        """ Sets the stop event state """
         self.__events["stop"].set()
         self.__timestamps["stop_set"] = datetime.now()
 
 
     def shouldStop(self):
-        "Returns the stop event state - indicating the module should stop"
+        """ Returns the stop event state - indicating the module should stop """
         return self.__events["stop"].isSet()
 
 
     def _setFinished(self):
-        "Sets the finished event state - indicating the module has completed"
+        """ Sets the finished event state - indicating the module has completed
+        """
         self.__events["finished"].set()
         self.__timestamps["finished_set"] = datetime.now()
 
 
     def WaitForCompletion(self, wtime=None):
-        "Blocks until the module has completed its workload"
+        """ Blocks until the module has completed its workload """
         if not self.shouldStart():
             # If it hasn't been started yet, nothing to wait for
             return None
@@ -127,32 +128,42 @@ class rtevalModulePrototype(threading.Thread):
 
 
     def _WorkloadSetup(self):
-        "Required module method, which purpose is to do the initial workload setup, preparing for _WorkloadBuild()"
+        """ Required module method, which purpose is to do the initial workload
+        setup, preparing for _WorkloadBuild()
+        """
         raise NotImplementedError("_WorkloadSetup() method must be implemented in the %s module" % self._name)
 
 
     def _WorkloadBuild(self):
-        "Required module method, which purpose is to compile additional code needed for the worklaod"
+        """ Required module method, which purpose is to compile additional code
+        needed for the worklaod
+        """
         raise NotImplementedError("_WorkloadBuild() method must be implemented in the %s module" % self._name)
 
 
     def _WorkloadPrepare(self):
-        "Required module method, which will initialise and prepare the workload just before it is about to start"
+        """ Required module method, which will initialise and prepare the
+        workload just before it is about to start
+        """
         raise NotImplementedError("_WorkloadPrepare() method must be implemented in the %s module" % self._name)
 
 
     def _WorkloadTask(self):
-        "Required module method, which kicks off the workload"
+        """ Required module method, which kicks off the workload """
         raise NotImplementedError("_WorkloadTask() method must be implemented in the %s module" % self._name)
 
 
     def WorkloadAlive(self):
-        "Required module method, which should return True if the workload is still alive"
+        """ Required module method, which should return True if the workload is
+        still alive
+        """
         raise NotImplementedError("WorkloadAlive() method must be implemented in the %s module" % self._name)
 
 
     def _WorkloadCleanup(self):
-        "Required module method, which will be run after the _WorkloadTask() has completed or been aborted by the 'stop event flag'"
+        """ Required module method, which will be run after the _WorkloadTask()
+        has completed or been aborted by the 'stop event flag'
+        """
         raise NotImplementedError("_WorkloadCleanup() method must be implemented in the %s module" % self._name)
 
 
@@ -203,7 +214,9 @@ class rtevalModulePrototype(threading.Thread):
 
 
     def MakeReport(self):
-        "required module method, needs to return an libxml2.xmlNode object with the the results from running"
+        """ required module method, needs to return an libxml2.xmlNode object
+        with the the results from running
+        """
         raise NotImplementedError("MakeReport() method must be implemented in the%s module" % self._name)
 
 
@@ -369,28 +382,31 @@ returned when a ModuleContainer object is iterated over"""
 
 
     def __next__(self):
-        """Internal Python iterating method, returns the next
-module name and object to be processed"""
+        """ Internal Python iterating method, returns the next
+        module name and object to be processed
+        """
 
         if len(self.__iter_list) == 0:
             self.__iter_list = None
             raise StopIteration
-        else:
-            modname = self.__iter_list.pop()
-            return (modname, self.__modobjects[modname])
+        modname = self.__iter_list.pop()
+        return (modname, self.__modobjects[modname])
 
 
 
 class RtEvalModules:
-    """RtEvalModules should normally be inherrited by a more specific module class.
-    This class takes care of managing imported modules and have methods for starting
-    and stopping the workload these modules contains."""
+    """ RtEvalModules should normally be inherrited by a more specific module
+    class.  This class takes care of managing imported modules and has methods
+    for starting and stopping the workload these modules contains.
+    """
 
     def __init__(self, config, modules_root, logger):
-        """Initialises the RtEvalModules() internal variables.  The modules_root
-argument should point at the root directory where the modules will be loaded from.
-The logger argument should point to a Log() object which will be used for logging
-and will also be given to the instantiated objects during module import."""
+        """ Initialises the RtEvalModules() internal variables.
+        The modules_root argument should point at the root directory where
+        the modules will be loaded from. The logger argument should point
+        to a Log() object which will be used for logging and will also be given
+        to the instantiated objects during module import.
+        """
 
         self._cfg = config
         self._logger = logger
@@ -436,9 +452,9 @@ and will also be given to the instantiated objects during module import."""
 
 
     def Start(self):
-        """Prepares all the imported modules workload to start, but they will not
-start their workloads yet"""
-
+        """ Prepares all the imported modules workload to start, but they
+        will not start their workloads yet
+        """
         if self.__modules.ModulesLoaded() == 0:
             raise rtevalRuntimeError("No %s modules configured" % self._module_type)
 
