@@ -24,8 +24,11 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os, os.path, glob, subprocess
-from signal import SIGTERM
+import sys
+import os
+import os.path
+import glob
+import subprocess
 from rteval.modules import rtevalRuntimeError
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
@@ -55,9 +58,12 @@ class KBuildJob:
         else:
             self.jobs = self.calc_jobs_per_cpu() * len(self.node)
         self.log(Log.DEBUG, "node %d: jobs == %d" % (int(node), self.jobs))
-        self.runcmd = "%s make O=%s -C %s -j%d bzImage modules" % (self.binder, self.objdir, self.kdir, self.jobs)
-        self.cleancmd = "%s make O=%s -C %s clean allmodconfig" % (self.binder, self.objdir, self.kdir)
-        self.log(Log.DEBUG, "node%d kcompile command: %s" % (int(node), self.runcmd))
+        self.runcmd = "%s make O=%s -C %s -j%d bzImage modules" \
+                % (self.binder, self.objdir, self.kdir, self.jobs)
+        self.cleancmd = "%s make O=%s -C %s clean allmodconfig" \
+                % (self.binder, self.objdir, self.kdir)
+        self.log(Log.DEBUG, "node%d kcompile command: %s" \
+                % (int(node), self.runcmd))
 
     def __str__(self):
         return self.runcmd
@@ -134,10 +140,12 @@ class Kcompile(CommandLineLoad):
             return
         self._log(Log.DEBUG, "removing kcompile directories in %s" % self.builddir)
         null = os.open("/dev/null", os.O_RDWR)
-        cmd = ["rm", "-rf", os.path.join(self.builddir, "kernel*"), os.path.join(self.builddir, "node*")]
+        cmd = ["rm", "-rf", os.path.join(self.builddir, "kernel*"),
+               os.path.join(self.builddir, "node*")]
         ret = subprocess.call(cmd, stdin=null, stdout=null, stderr=null)
         if ret:
-            raise rtevalRuntimeError(self, "error removing builddir (%s) (ret=%d)" % (self.builddir, ret))
+            raise rtevalRuntimeError(self, \
+                "error removing builddir (%s) (ret=%d)" % (self.builddir, ret))
 
     def _WorkloadSetup(self):
         # find our source tarball
@@ -148,7 +156,7 @@ class Kcompile(CommandLineLoad):
             self.source = tarfile
         else:
             tarfiles = glob.glob(os.path.join(self.srcdir, "%s*" % kernel_prefix))
-            if len(tarfiles):
+            if tarfiles:
                 self.source = tarfiles[0]
             else:
                 raise rtevalRuntimeError(self, " no kernel tarballs found in %s" % self.srcdir)
@@ -195,7 +203,8 @@ class Kcompile(CommandLineLoad):
 
         for n in self.nodes:
             self._log(Log.DEBUG, "Configuring build job for node %d" % int(n))
-            self.buildjobs[n] = KBuildJob(self.topology[n], self.mydir, self.logger, self.cpus[n] if self.cpulist else None)
+            self.buildjobs[n] = KBuildJob(self.topology[n], self.mydir, \
+                self.logger, self.cpus[n] if self.cpulist else None)
             self.args.append(str(self.buildjobs[n])+";")
 
 
@@ -256,8 +265,8 @@ class Kcompile(CommandLineLoad):
                 # -2 is returned when user forced stop of execution (CTRL-C).
                 if self.buildjobs[n].jobid is not None:
                     if self.buildjobs[n].jobid.returncode != 0 and self.buildjobs[n].jobid.returncode != -2:
-                        raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail"
-                                % self.buildjobs[n].jobid.returncode)
+                        raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail" \
+                            % self.buildjobs[n].jobid.returncode)
                 self._log(Log.INFO, "Starting load on node %d" % n)
                 self.buildjobs[n].run(self.__nullfd, self.__outfd, self.__errfd)
 
@@ -267,8 +276,7 @@ class Kcompile(CommandLineLoad):
             if self.buildjobs[n].jobid.poll() is not None:
                 # Check return code (see above).
                 if self.buildjobs[n].jobid.returncode != 0 and self.buildjobs[n].jobid.returncode != -2:
-                    raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail"
-                            % self.buildjobs[n].jobid.returncode)
+                    raise RuntimeError("kcompile module failed to run (returned %d), please check logs for more detail" % self.buildjobs[n].jobid.returncode)
                 return False
 
         return True
