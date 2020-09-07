@@ -30,6 +30,7 @@ import subprocess
 import signal
 import time
 import tempfile
+import math
 import libxml2
 from rteval.Log import Log
 from rteval.modules import rtevalModulePrototype
@@ -68,18 +69,21 @@ class RunData:
 
     def sample(self, value):
         self.__samples[value] += self.__samples.setdefault(value, 0) + 1
-        if value > self.__max: self.__max = value
-        if value < self.__min: self.__min = value
+        if value > self.__max:
+            self.__max = value
+        if value < self.__min:
+            self.__min = value
         self.__numsamples += 1
 
     def bucket(self, index, value):
         self.__samples[index] = self.__samples.setdefault(index, 0) + value
-        if value and index > self.__max: self.__max = index
-        if value and index < self.__min: self.__min = index
+        if value and index > self.__max:
+            self.__max = index
+        if value and index < self.__min:
+            self.__min = index
         self.__numsamples += value
 
     def reduce(self):
-        import math
 
         # check to see if we have any samples and if we
         # only have 1 (or none) set the calculated values
@@ -94,7 +98,6 @@ class RunData:
         total = 0
         keys = list(self.__samples.keys())
         keys.sort()
-        sorted = []
 
         mid = self.__numsamples / 2
 
@@ -217,7 +220,8 @@ class Cyclictest(rtevalModulePrototype):
             self.__cyclicdata[core].description = info[core]['model name']
 
         # Create a RunData object for the overall system
-        self.__cyclicdata['system'] = RunData('system', 'system', self.__priority,
+        self.__cyclicdata['system'] = RunData('system',
+                                              'system', self.__priority,
                                               logfnc=self._log)
         self.__cyclicdata['system'].description = ("(%d cores) " % self.__numcores) + info['0']['model name']
 
@@ -230,7 +234,8 @@ class Cyclictest(rtevalModulePrototype):
         self.__breaktraceval = None
 
 
-    def __get_debugfs_mount(self):
+    @staticmethod
+    def __get_debugfs_mount():
         ret = None
         mounts = open('/proc/mounts')
         for l in mounts:
@@ -244,7 +249,6 @@ class Cyclictest(rtevalModulePrototype):
 
     def _WorkloadSetup(self):
         self.__cyclicprocess = None
-        pass
 
 
     def _WorkloadBuild(self):
@@ -299,9 +303,9 @@ class Cyclictest(rtevalModulePrototype):
         self.__cyclicoutput.seek(0)
         try:
             self.__cyclicprocess = subprocess.Popen(self.__cmd,
-                    stdout=self.__cyclicoutput,
-                    stderr=self.__nullfp,
-                    stdin=self.__nullfp)
+                                                    stdout=self.__cyclicoutput,
+                                                    stderr=self.__nullfp,
+                                                    stdin=self.__nullfp)
             self.__started = True
         except OSError:
             self.__started = False
@@ -310,8 +314,7 @@ class Cyclictest(rtevalModulePrototype):
     def WorkloadAlive(self):
         if self.__started:
             return self.__cyclicprocess.poll() is None
-        else:
-            return False
+        return False
 
 
     def _WorkloadCleanup(self):
