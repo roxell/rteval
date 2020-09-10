@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+""" This Module consists of the single function getcmdpath() """
 #
 #   Copyright 2012 - 2013   Raphaël Beamonte <raphael.beamonte@gmail.com>
 #
@@ -26,7 +27,7 @@
 import os
 import os.path
 
-pathSave={}
+pathSave = {}
 def getcmdpath(which):
     """
     getcmdpath is a method which allows finding an executable in the PATH
@@ -41,4 +42,3 @@ def getcmdpath(which):
         if not pathSave[which]:
             raise RuntimeError("Command '%s' is unknown on this system" % which)
     return pathSave[which]
-
