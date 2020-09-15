@@ -34,17 +34,21 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os, time, optparse, tempfile
-import libxml2, lxml.etree
-from datetime import datetime
+import sys
+import os
+import time
+import optparse
+import tempfile
+import lxml.etree
 from rteval.Log import Log
 from rteval import RtEval, rtevalConfig
 from rteval.modules.loads import LoadModules
 from rteval.modules.measurement import MeasurementModules
 from rteval.version import RTEVAL_VERSION
-from rteval.misc import online_cpus, invert_cpulist, compress_cpulist
+from rteval.misc import invert_cpulist, compress_cpulist
 
 def summarize(repfile, xslt):
+    """ Summarize an already existing XML report """
     isarchive = False
     summaryfile = repfile
     if repfile.endswith(".tar.bz2"):
