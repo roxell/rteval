@@ -24,10 +24,10 @@
 #   are deemed to be part of the source code.
 #
 
-import libxml2
 from glob import glob
+import libxml2
 
-class MemoryInfo(object):
+class MemoryInfo:
     numa_nodes = None
 
     def __init__(self):
@@ -40,7 +40,8 @@ class MemoryInfo(object):
         return self.numa_nodes
 
 
-    def mem_get_size(self):
+    @staticmethod
+    def mem_get_size():
         '''find out how much memory is installed'''
         f = open('/proc/meminfo')
         rawsize = 0
@@ -57,7 +58,7 @@ class MemoryInfo(object):
 
         # Get a more readable result
         # Note that this depends on  /proc/meminfo starting in Kb
-        units = ('KB', 'MB','GB','TB')
+        units = ('KB', 'MB', 'GB', 'TB')
         size = rawsize
         for unit in units:
             if size < (1024*1024):
@@ -94,6 +95,7 @@ def unit_test(rootdir):
         traceback.print_exc(file=sys.stdout)
         print("** EXCEPTION %s", str(e))
         return 1
+    return 0
 
 if __name__ == '__main__':
     unit_test(None)
