@@ -44,8 +44,12 @@ class LoadThread(rtevalModulePrototype):
             raise TypeError("logger attribute is not a Log() object")
 
         rtevalModulePrototype.__init__(self, "load", name, logger)
-        self.builddir = config.setdefault('builddir', os.path.abspath("../build"))	# abs path to top dir
-        self.srcdir = config.setdefault('srcdir', os.path.abspath("../loadsource"))	# abs path to src dir
+	# abs path to top dir
+        self.builddir = config.setdefault('builddir',
+                                          os.path.abspath("../build"))
+        # abs path to src dir
+        self.srcdir = config.setdefault('srcdir',
+                                        os.path.abspath("../loadsource"))
         self.num_cpus = config.setdefault('numcores', 1)
         self.source = config.setdefault('source', None)
         self.reportdir = config.setdefault('reportdir', os.getcwd())
