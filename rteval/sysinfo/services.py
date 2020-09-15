@@ -25,12 +25,17 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, subprocess, os, glob, fnmatch, libxml2
+import sys
+import subprocess
+import os
+import glob
+import fnmatch
+import libxml2
 from rteval.sysinfo.tools import getcmdpath
 from rteval.Log import Log
 
 
-class SystemServices(object):
+class SystemServices:
     def __init__(self, logger=None):
         self.__logger = logger
         self.__init = "unknown"
@@ -54,7 +59,8 @@ class SystemServices(object):
         ret_services = {}
         for service in glob.glob(os.path.join(servicesdir, '*')):
             servicename = os.path.basename(service)
-            if not [1 for p in reject if fnmatch.fnmatch(servicename, p)] and os.access(service, os.X_OK):
+            if not [1 for p in reject if fnmatch.fnmatch(servicename, p)] \
+                    and os.access(service, os.X_OK):
                 cmd = '%s -qs "\(^\|\W\)status)" %s' % (getcmdpath('grep'), service)
                 c = subprocess.Popen(cmd, shell=True)
                 c.wait()
@@ -84,19 +90,18 @@ class SystemServices(object):
 
 
     def services_get(self):
-        cmd = [getcmdpath('ps'), '-ocomm=',  '1']
+        cmd = [getcmdpath('ps'), '-ocomm=', '1']
         c = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         self.__init = c.stdout.read().strip()
         if self.__init == 'systemd':
             self.__log(Log.DEBUG, "Using systemd to get services status")
             return self.__get_services_systemd()
-        elif self.__init == 'init':
+        if self.__init == 'init':
             self.__init = 'sysvinit'
             self.__log(Log.DEBUG, "Using sysvinit to get services status")
             return self.__get_services_sysvinit()
-        else:
-            self.__init = 'container'
-            self.__log(Log.DEBUG, "Running inside container")
+        self.__init = 'container'
+        self.__log(Log.DEBUG, "Running inside container")
         return {}
 
 
@@ -127,8 +132,8 @@ def unit_test(rootdir):
         xml_d.saveFormatFileEnc("-", "UTF-8", 1)
 
         return 0
-    except Exception as e:
-        print("** EXCEPTION: %s" % str(e))
+    except Exception as err:
+        print("** EXCEPTION: %s" % str(err))
         return 1
 
 
