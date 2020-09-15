@@ -25,7 +25,13 @@
 #   are deemed to be part of the source code.
 #
 
-import os, sys, libxml2, tempfile, time, subprocess, base64, bz2, textwrap
+import os
+import time
+import subprocess
+import base64
+import bz2
+import textwrap
+import libxml2
 from rteval.Log import Log
 from rteval.modules import rtevalModulePrototype
 
