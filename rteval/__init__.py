@@ -31,16 +31,21 @@ Realtime verification utility
 __author__ = "Clark Williams <williams@redhat.com>, David Sommerseth <davids@redhat.com>"
 __license__ = "GPLv2 License"
 
-import os, signal, sys, threading, time
+import os
+import signal
+import sys
+import threading
+import time
 from datetime import datetime
 from distutils import sysconfig
-from .modules.loads import LoadModules
-from .modules.measurement import MeasurementModules, MeasurementProfile
-from .rtevalReport import rtevalReport
-from .rtevalXMLRPC import rtevalXMLRPC
-from .Log import Log
-from . import rtevalConfig, rtevalMailer
-from . import version
+from rteval.modules.loads import LoadModules
+from rteval.modules.measurement import MeasurementModules, MeasurementProfile
+from rteval.rtevalReport import rtevalReport
+from rteval.rtevalXMLRPC import rtevalXMLRPC
+from rteval.Log import Log
+from rteval import rtevalConfig
+from rteval import rtevalMailer
+from rteval import version
 
 RTEVAL_VERSION = version.RTEVAL_VERSION
 
@@ -48,8 +53,8 @@ earlystop = False
 
 stopsig_received = False
 def sig_handler(signum, frame):
-
-    if signum == signal.SIGINT or signum == signal.SIGTERM:
+    """ Handle SIGINT (CTRL + C) or SIGTERM (Termination signal) """
+    if signum in (signal.SIGINT, signal.SIGTERM):
         global stopsig_received
         stopsig_received = True
         print("*** stop signal received - stopping rteval run ***")
@@ -114,20 +119,25 @@ class RtEval(rtevalReport):
             self.__xmlrpc = None
 
 
-    def __show_remaining_time(self, remaining):
-        r = int(remaining)
-        days = int(r / 86400)
-        if days: r = r - (days * 86400)
-        hours = int(r / 3600)
-        if hours: r = r - (hours * 3600)
-        minutes = int(r / 60)
-        if minutes: r = r - (minutes * 60)
-        print("rteval time remaining: %d days, %d hours, %d minutes, %d seconds" % (days, hours, minutes, r))
+    @staticmethod
+    def __show_remaining_time(remaining):
+        secs = int(remaining)
+        days = int(secs / 86400)
+        if days:
+            secs = secs - (days * 86400)
+        hours = int(secs / 3600)
+        if hours:
+            secs = secs - (hours * 3600)
+        minutes = int(secs / 60)
+        if minutes:
+            secs = secs - (minutes * 60)
+        print(f'rteval time remaining: {days}, {hours}, {minutes}, {secs}')
 
 
     def Prepare(self, onlyload=False):
         builddir = os.path.join(self.__rtevcfg.workdir, 'rteval-build')
-        if not os.path.isdir(builddir): os.mkdir(builddir)
+        if not os.path.isdir(builddir):
+            os.mkdir(builddir)
 
         # create our report directory
         try:
@@ -135,8 +145,8 @@ class RtEval(rtevalReport):
             # or the loads logging is enabled
             if not onlyload or self.__rtevcfg.logging:
                 self.__reportdir = self._make_report_dir(self.__rtevcfg.workdir, "summary.xml")
-        except Exception as e:
-            raise RuntimeError("Cannot create report directory (NFS with rootsquash on?) [%s]", str(e))
+        except Exception as err:
+            raise RuntimeError(f"Cannot create report directory (NFS with rootsquash on?) [{err}]]")
 
         self.__logger.log(Log.INFO, "Preparing load modules")
         params = {'workdir':self.__rtevcfg.workdir,
@@ -243,9 +253,9 @@ class RtEval(rtevalReport):
             signal.signal(signal.SIGINT, signal.SIG_DFL)
             signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
-        except RuntimeError as e:
+        except RuntimeError as err:
             if not stopsig_received:
-                raise RuntimeError("appeared during measurement: %s" % e)
+                raise RuntimeError(f"appeared during measurement: {err}")
 
         finally:
             # stop measurement threads
@@ -264,8 +274,8 @@ class RtEval(rtevalReport):
 
 
     def Measure(self):
+        """ Run the full measurement suite with reports """
         global earlystop
-        # Run the full measurement suite with reports
         rtevalres = 0
         measure_start = None
         for meas_prf in self._measuremods:
@@ -279,7 +289,7 @@ class RtEval(rtevalReport):
 
         # if --xmlrpc-submit | -X was given, send our report to the given host
         if self.__xmlrpc:
-            retvalres = self.__xmlrpc.SendReport(self.GetXMLreport())
+            rtevalres = self.__xmlrpc.SendReport(self.GetXMLreport())
 
         if earlystop:
             rtevalres = 1
