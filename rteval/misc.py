@@ -33,14 +33,14 @@ def expand_cpulist(cpulist):
         else:
             a = int(part)
             result.append(a)
-    return [ str(i) for i in list(set(result)) ]
+    return [str(i) for i in list(set(result))]
 
 def online_cpus():
     online_cpus = []
     # Check for the online file with cpu1 since cpu0 can't always be offlined
     if os.path.exists('/sys/devices/system/cpu/cpu1/online'):
         for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
-            num = str(c.replace('/sys/devices/system/cpu/cpu',''))
+            num = str(c.replace('/sys/devices/system/cpu/cpu', ''))
             # On some machine you can't turn off cpu0
             if not os.path.exists(c + '/online') and num == "0":
                 online_cpus.append(num)
@@ -51,18 +51,17 @@ def online_cpus():
                     online_cpus.append(num)
     else: # use the old heuristic
         for c in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
-            num = str(c.replace('/sys/devices/system/cpu/cpu',''))
+            num = str(c.replace('/sys/devices/system/cpu/cpu', ''))
             online_cpus.append(num)
     return online_cpus
 
 def invert_cpulist(cpulist):
-    return [ c for c in online_cpus() if c not in cpulist]
+    return [c for c in online_cpus() if c not in cpulist]
 
 def compress_cpulist(cpulist):
-    if type(cpulist[0]) == int:
+    if isinstance(cpulist[0], int):
         return ",".join(str(e) for e in cpulist)
-    else:
-        return ",".join(cpulist)
+    return ",".join(cpulist)
 
 def cpuinfo():
     core = -1
@@ -83,8 +82,7 @@ def cpuinfo():
 if __name__ == "__main__":
 
     info = cpuinfo()
-    idx = list(info.keys())
-    idx.sort()
+    idx = sorted(info.keys())
     for i in idx:
         print("%s: %s" % (i, info[i]))
 
