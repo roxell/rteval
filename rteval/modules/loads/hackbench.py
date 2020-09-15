@@ -25,7 +25,12 @@
 #   are deemed to be part of the source code.
 #
 
-import sys, os, time, glob, subprocess, errno, os.path
+import sys
+import os
+import os.path
+import time
+import subprocess
+import errno
 from signal import SIGKILL
 from rteval.modules.loads import CommandLineLoad
 from rteval.Log import Log
@@ -202,7 +207,7 @@ def ModuleParameters():
 def create(config, logger):
     return Hackbench(config, logger)
 
-
-if __name__ == '__main__':
-    h = Hackbench(params={'debugging':True, 'verbose':True})
-    h.run()
+# TODO: The following test is broken
+#if __name__ == '__main__':
+#    h = Hackbench(params={'debugging':True, 'verbose':True})
+#    h.run()
