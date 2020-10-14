@@ -75,6 +75,8 @@ def cpuinfo():
         if key == 'processor':
             core = val
             info[core] = {}
+            # default model name if there isn't any in /proc/cpuinfo
+            info[core]["model name"] = "unknown CPU"
             continue
         info[core][key] = val
     return info
