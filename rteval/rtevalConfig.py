@@ -51,7 +51,8 @@ def default_config_search(relative_path, verifdef=os.path.isdir):
     ConfigDirectories = [
         os.path.join(os.path.expanduser("~" + get_user_name()), '.rteval'),
         '/etc/rteval',
-        '/usr/share/rteval'
+        '/usr/share/rteval',
+        '/usr/local/share/rteval'
     ]
 
     if os.path.dirname(os.path.abspath(__file__)) != '/usr/share/rteval':
