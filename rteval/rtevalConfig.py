@@ -94,6 +94,7 @@ default_config = {
         'srcdir'     : default_config_search(['loadsource']),
         'xmlrpc'     : None,
         'xslt_report': default_config_search(['rteval_text.xsl'], os.path.isfile),
+        'xslt_histogram': default_config_search(['rteval_histogram_raw.xsl'], os.path.isfile),
         'report_interval': '600',
         'logging'    : False,
         }
