@@ -274,7 +274,7 @@ if __name__ == '__main__':
 
             for x in cmd_args:
                 if rtevcfg.summarize:
-                    summarize(x, '%s/rteval_text.xsl' % rtevcfg.installdir)
+                    summarize(x, rtevcfg.xslt_report)
                 elif rtevcfg.rawhistogram:
                     summarize(x, '%s/rteval_histogram_raw.xsl' % rtevcfg.installdir)
 
