@@ -12,15 +12,15 @@ the system (gotten through DMI tables), the raw histogram data
 collected during the run and the statistical analysis of the run.
 
 The rteval source may be pulled from it's git tree on kernel.org:
-    git://git.kernel.org/pub/scm/linux/kernel/git/clrkwllms/rteval.git
+    git://git.kernel.org/pub/scm/utils/rteval/rteval.git
 
 Rteval requires the following packages to run:
 
-Python >= 2.4 (and < 3.0)
+Python >= 3.0
     http://www.python.org/download/
 
 python-schedutils
-    git://git.kernel.org/pub/scm/linux/kernel/git/acme/python-schedutils.git
+    git://git.kernel.org/pub/scm/libs/python/python-schedutils/python-schedutils.git
 
 python-ethtool
     git://git.kernel.org/pub/scm/linux/kernel/git/acme/python-ethtool.git
@@ -32,11 +32,15 @@ python-dmidecode
     http://www.ohloh.net/p/python-dmidecode
 
 libxml2-python
-  http://xmlsoft.org/
+    http://xmlsoft.org/
 
 rt-tests
-  git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
+    git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
 
 Clark Williams <williams@redhat.com> wrote rteval
+
 David Sommerseth <davids@redhat.com> wrote the XML-RPC and database
-     logic for handling rteval results.
+    logic for handling rteval results.
+
+John Kacur <jkacur at redhat dot com> ported it to python-3.0
+    and has been developing and maintaining it since then.
