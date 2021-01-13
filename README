@@ -19,9 +19,6 @@ Rteval requires the following packages to run:
 Python >= 3.0
     http://www.python.org/download/
 
-python-schedutils
-    git://git.kernel.org/pub/scm/libs/python/python-schedutils/python-schedutils.git
-
 python-ethtool
     git://git.kernel.org/pub/scm/linux/kernel/git/acme/python-ethtool.git
 

@@ -14,7 +14,7 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	python3-devel
 Requires:	platform-python
-Requires:	python3-schedutils python3-ethtool python3-lxml
+Requires:	python3-ethtool python3-lxml
 Requires:	python3-dmidecode >= 3.10
 Requires:	rt-tests >= 0.97
 Requires:	rteval-loads >= 1.4
