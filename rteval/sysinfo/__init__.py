@@ -34,7 +34,7 @@ from rteval.sysinfo.memory import MemoryInfo
 from rteval.sysinfo.osinfo import OSInfo
 from rteval.sysinfo.network import NetworkInfo
 from rteval.sysinfo.cmdline import cmdlineInfo
-import rteval.sysinfo.dmi as dmi
+from rteval.sysinfo import dmi
 
 class SystemInfo(KernelInfo, SystemServices, dmi.DMIinfo, CPUtopology,
                  MemoryInfo, OSInfo, NetworkInfo, cmdlineInfo):
